@@ -1,26 +1,24 @@
 import React, { Component } from 'react';
-import './App.css';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
+
+import Header from './components/header/Header'
+
+//сделать пофайловый импорт статич ресурсов
+//import './App.css';
 
 class App extends Component {
-	state = {users: []};
-	
-	componentDidMount() {
-		fetch('/test')
-
-			.then(res => res.json())
-			.then(users => this.setState({ users }));
-	}
 	
 	render() {
+		console.log( this.props.data.users );
 		return (
             <div className="App">
-                <h1>Users</h1>
-				{this.state.users.map(user =>
-                    <div key={user.id}>{user.username}</div>
-				)}
-            </div>
+				<Header/>
+			</div>
 		);
 	}
 }
 
-export default App;
+//для компонентов, использующих данные
+
+export default graphql(gql`{ users {id, login } }`, {})(App);
