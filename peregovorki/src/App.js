@@ -8,17 +8,16 @@ import Header from './components/header/Header'
 //import './App.css';
 
 class App extends Component {
-	
 	render() {
 		console.log( this.props.data.users );
 		return (
-            <div className="App">
+			<div className="App__wrapper">
 				<Header/>
 			</div>
 		);
 	}
-}
+};
+
 
 //для компонентов, использующих данные
-
 export default graphql(gql`{ users {id, login } }`, {})(App);
