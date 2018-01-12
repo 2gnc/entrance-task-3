@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Button from './../elements/Button';
 
 export default class Header extends Component {
 	render(){
@@ -8,6 +9,7 @@ export default class Header extends Component {
 					<a className="logo__link" href="/">
 						<img className="logo" src="img/logo.svg" alt="Яндекс переговорки"/>
 					</a>
+					<Button modificator="btn--nomob" command="Создать встречу" />
 				</div>
 			</header>);
 		}
