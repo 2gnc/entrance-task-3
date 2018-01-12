@@ -21,6 +21,6 @@
 4. Для связи приложения и сервера graphql установлен react-apollo 
 5. Для того, чтобы можно было принмать запросы от других доменов, для бэкэнда установила cors
 6. Использованы следующие сторонние компоненты React и библиотеки: 
-	1. React-router
-	2. Moments.js
-	3. React-datepicker
+	* React-router
+	* Moments.js
+	* React-datepicker
