@@ -6,7 +6,7 @@ export default class Header extends Component {
 			<header className="header">
 				<div className="wrapper header__layout">
 					<a className="logo__link" href="/">
-						<img className="logo" src="../img/logo.svg" alt"Яндекс переговорки"/>
+						<img className="logo" src="img/logo.svg" alt="Яндекс переговорки"/>
 					</a>
 				</div>
 			</header>);
