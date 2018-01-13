@@ -5,7 +5,6 @@ import gql from 'graphql-tag';
 import Header from './components/header/Header'
 import Timing from './components/timing/Timing'
 
-//сделать пофайловый импорт статич ресурсов
 //import './App.css';
 
 class App extends Component {

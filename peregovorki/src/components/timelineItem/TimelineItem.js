@@ -11,10 +11,3 @@ export default class TimelineItem extends Component {
 		)
 	}
 }
-
-
-//schedule__time--first
-//schedule__time--last
-//schedule__hour--past (span)
-
-//{ this.props.isInPast }

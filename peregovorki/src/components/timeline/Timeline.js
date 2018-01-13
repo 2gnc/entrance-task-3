@@ -8,27 +8,85 @@ export default class Timeline extends Component {
 		
 		let timeslots = [];
 		let times = ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"];
-		let currentTime = moment();
-		let position = "schedule__time--first";
+		let currentTime = this.props.currentDay;
+		let position = "";
 		let coord = 1;
-		let isInPast = "schedule__hour--past";
+		let isInPast = "";
 		let time = "";
 		
+		//если дата в прошлом
+		if(currentTime.isBefore(moment(), 'day')) {
+			
+			isInPast = "schedule__hour--past";
+			for (let i = 0; i <16; i++) {
+				if( i === 0 ) {
+					time = times[i];
+					position = "schedule__time--first";
+				} else if (i === 16) {
+					time = times[i];
+					position = "schedule__time--last";
+				} else {
+					time = times[i];
+					position = "";
+				}
+				
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime}/>);
+ 			}
 		
+		//если дата сегодня
+		} else if ( currentTime.isSame( moment(), 'day' )) {
+			
+			for (let i = 0; i <16; i++) {
+				
+				if ( +times[ i ] < +moment ().format ( "HH" ) ) {
+					
+					isInPast = "schedule__hour--past";
+				} else {
+					isInPast = "";
+				}
+				
+				if( i === 0 ) {
+					time = times[ i ];
+					position = "schedule__time--first";
+					
+				}
+				 else if (i === 16) {
+					time = times[i];
+					position = "schedule__time--last";
+					
+				} else {
+					time = times[i];
+					position = "";
+					
+				}
+				
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime}/>);
+			}
 		
-		for(let i = 0; i <= 16; i++){
-			if( i === 0 ) {
-				time="8:00"
-			} else {
-				time = times[i]
-			};
-			timeslots.push(<TimelineItem time = {time} key={i} />);
+		//если дата в будущем
+		} else {
+			
+			isInPast = "";
+			for (let i = 0; i <16; i++) {
+				if( i === 0 ) {
+					time = times[i];
+					position = "schedule__time--first";
+				} else if (i === 16) {
+					time = times[i];
+					position = "schedule__time--last";
+				} else {
+					time = times[i];
+					position = "";
+				}
+				
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime}/>);
+			}
+		
 		}
 		
 		return (
 			<div className="timing__timeline">
 				{timeslots}
-				<TimelineItem position={position} coordX={coord} time={time} gone={isInPast} />
 			</div>
 		)
 	}

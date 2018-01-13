@@ -33,6 +33,8 @@ export default class Datepick extends Component {
 	  this.props.parent.setState ( {
 		  currentDate: date
 	  } );
+	  
+	  this.props.parent.dateHandler(date);
   }
   
   render() {

@@ -20,12 +20,11 @@ export default class Timing extends Component {
 	}
 	
 	render() {
-		console.log(11, this.state.dayToDisplay);
 		return(
 			<div className="timing">
 				<div className="wrapper timing__layout">
 					<Dayline parent={this} />
-					<Timeline />
+					<Timeline currentDay={this.state.dayToDisplay} />
 				</div>
 			</div>
 		)
