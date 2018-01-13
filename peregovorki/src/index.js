@@ -1,6 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
+import {Router, Route, IndexRoute, browserHistory } from 'react-router';
+
+import Main from './layouts/Main';
+import Test from './components/elements/Test';
+
 
 
 import { ApolloProvider } from 'react-apollo';
@@ -14,11 +19,18 @@ const client = new ApolloClient({
 	cache: new InMemoryCache()
 });
 
-//client.query({ query: gql` query {users {id, login}}` }).then(console.log);
 
 ReactDOM.render(
 	<ApolloProvider client={client}>
-		<App />
+		<Router history={browserHistory}>
+			<Route path="/" component={Main} >
+				<IndexRoute component={App} />
+				<Route path="test" component={Test} />
+				<Route path="event" component={Test} >
+					<Route path=":eventId" component={Test} />
+				</Route>
+			</Route>
+		</Router>
 	</ApolloProvider>,
 	document.getElementById('root')
 );
