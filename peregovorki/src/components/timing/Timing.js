@@ -17,6 +17,8 @@ export default class Timing extends Component {
 		this.setState({
 			dayToDisplay: data,
 		});
+		//console.log( 'Timing: стостояние изменилось на ', data );
+		this.props.parent.dateHandler(data);
 	}
 	
 	render() {

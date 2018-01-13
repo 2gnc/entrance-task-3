@@ -14,6 +14,7 @@ export default class Dayline extends Component {
 	
 	dateHandler(data) {
 		this.props.parent.dateHandler(data);
+		//console.log( 'Dayline: передаю ', data,  this.props.parent )
 	}
 	
 	render() {
