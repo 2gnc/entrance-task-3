@@ -30,7 +30,7 @@ export default class Timeline extends Component {
 					position = "";
 				}
 				
-				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i} />);
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i+7} />);
  			}
 		
 		//если дата сегодня
@@ -60,7 +60,7 @@ export default class Timeline extends Component {
 					
 				}
 				
-				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i}/>);
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i+7}/>);
 			}
 		
 		//если дата в будущем
@@ -79,7 +79,7 @@ export default class Timeline extends Component {
 					position = "";
 				}
 				
-				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i}/>);
+				timeslots.push(<TimelineItem time = {time} key={i} position={position} gone={isInPast} day = {currentTime} coord={i+7}/>);
 			}
 		
 		}

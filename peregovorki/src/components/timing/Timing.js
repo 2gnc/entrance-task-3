@@ -18,10 +18,12 @@ export default class Timing extends Component {
 			dayToDisplay: data,
 		});
 		//console.log( 'Timing: стостояние изменилось на ', data );
+		//this.props.parent.setState(data);
 		this.props.parent.dateHandler(data);
 	}
 	
 	render() {
+		//console.log( "(3)Timing: ", this.state.dayToDisplay );
 		return(
 			<div className="timing">
 				<div className="wrapper timing__layout">

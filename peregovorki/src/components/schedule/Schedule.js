@@ -1,31 +1,23 @@
 import React, { Component } from 'react';
-import moment from 'moment';
 
-
-import Rooms from './../rooms/Rooms'
+import Rooms from './../rooms/Rooms';
+import ScheduleDay from './../scheduleDay/ScheduleDay'
 
 export default class Schedule extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			dayToDisplay: moment(),
-		};
-		this.dateHandler = this.dateHandler.bind(this);
-	}
-	
-	dateHandler(data) {
-		this.setState({
-			dayToDisplay: data,
-		});
-	}
 	
 	render() {
+		//console.log("Schedule все props", this.props);
+
 		return(
 			
 			<main className="schedule">
 				<div className="wrapper schedule__layout">
-					<div className="schedule__aside"><Rooms /></div>
-					<div className="schedule__day">2</div>
+					<div className="schedule__aside">
+						<Rooms rooms={this.props.rooms} />
+					</div>
+					<div className="schedule__day">
+						<ScheduleDay dayToDisplay={this.props.dateToDisplay} rooms={this.props.rooms} />
+					</div>
 				</div>
 			</main>
 		)

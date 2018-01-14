@@ -24,8 +24,9 @@ export default class Datepick extends Component {
     this.handleChange = this.handleChange.bind(this);
 	
   }
- 
+	
   handleChange(date) {
+
 	  this.setState ( {
 		  startDate: date
 	  } );
@@ -35,9 +36,12 @@ export default class Datepick extends Component {
 	  } );
 	  
 	  this.props.parent.dateHandler(date);
+
   }
   
   render() {
+  	//console.log( "Datepick state: ", this.state);
+  	
     return <DatePicker
         selected = {this.state.startDate}
         onChange = {this.handleChange}

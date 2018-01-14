@@ -7,22 +7,28 @@ export default class Dayline extends Component {
 	constructor( props ) {
 		super( props );
 		this.state = {
-			currentDate: moment(),
-			today: moment()
+			currentDate: moment()
+			//today: moment()
 		};
 	}
 	
 	dateHandler(data) {
+		
+		this.setState({
+			currentDate: data
+		});
+		
 		this.props.parent.dateHandler(data);
-		//console.log( 'Dayline: передаю ', data,  this.props.parent )
+		
 	}
 	
 	render() {
-		
+		//console.log( "(2)Dayline state: ", this.state.currentDate );
+
 		let needCurrent;
 		let datepicker = <Datepick className = '' parent = {this} daySelected = {this.state.currentDate}  />;
-		let iconLeft = <Icon modificator="icon--arrl" callback = {this} />;
-		let iconRight = <Icon modificator="icon--arrr" callback = {this} />;
+		let iconLeft = <Icon modificator="icon--arrl" parent = {this} currentDay={this.state.currentDate} />;
+		let iconRight = <Icon modificator="icon--arrr" parent = {this} currentDay={this.state.currentDate} />;
 		
 		if( this.state.currentDate.isSame(this.state.today, 'day' )) {
 			needCurrent = (<label className="timing__label" htmlFor="datetoday">Сегодня</label>);
