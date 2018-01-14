@@ -4,7 +4,8 @@ import IconClose from "../elements/IconClose";
 import Autocomplete from 'react-autocomplete';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import User from '../user/User'
+import User from '../user/User';
+import EventParticipants from '../eventparticipants/EventParticipants';
 
 class Eventeditor extends Component {
 	// при выборе в автокомплите обновлять состояние, добавлять юзеров в массив
@@ -112,7 +113,7 @@ class Eventeditor extends Component {
 									onSelect = {(value) => {console.log(value)} }
 
 								/>
-								{/*<EventParticipants/>*/}
+								<EventParticipants users={this.state.selectedUsers} />
 							</div>
 							<div className="event__separator"></div>
 						</div>
