@@ -1,4 +1,4 @@
-$(function() {
+$(function($) {
 	$( '.autocomplete' ).niceScroll(
 		"div.autocomplete__wrapper",
 		{
@@ -17,7 +17,8 @@ $(function() {
 		}
 	);
 });
-(function (){
+
+(function ($){
 	if ( $( '.schedule__aside' ).length > 0 ) {
 		const aside = $( '.schedule__aside' )[ 0 ].clientWidth;
 		const roomsbox = $( '.rooms' );
@@ -51,5 +52,5 @@ $(function() {
 			
 		}
 	}
-}());
+}(jQuery));
 	
