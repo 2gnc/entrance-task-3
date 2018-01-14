@@ -6,6 +6,7 @@ import Timing from './components/timing/Timing'
 import ScheduleWrapper from './components/scheduleWrapper/ScheduleWrapper';
 
 export default class App extends Component {
+	
 	constructor( props ) {
 		super( props );
 		this.state = {
@@ -15,16 +16,12 @@ export default class App extends Component {
 	}
 	
 	dateHandler(data) {
-		console.log( "App состояние" );
 		this.setState({
 			dayToDisplay: data,
 		});
 	}
 	
 	render() {
-		let x = moment().format('mm');
-
-		console.log( x );
 
 		let hasButton = true;
 		console.log( "App состояние", this.state );
