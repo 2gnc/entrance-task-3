@@ -13,8 +13,6 @@ export default class Header extends Component {
 			button = '';
 		}
 		
-		console.log( "App перерисовал header" )
-		
 		return (
 			<header className="header">
 				<div className="wrapper header__layout">

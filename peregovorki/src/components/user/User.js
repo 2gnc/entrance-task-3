@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 
 export default class User extends Component {
 	
+	constructor( props ) {
+		super( props );
+	}
+	
 	render () {
 		if(this.props.renderType === "--listed") {
 			return(
@@ -16,7 +20,7 @@ export default class User extends Component {
 				<div className = {"user user" + this.props.renderType }>
 					<img className = "user__pic" src={this.props.avatarurl} />
 					<div className = "user__name user__name--in-event">{this.props.login}</div>
-					<div className="icon icon--close" onClick={this.props.deletehandler} ></div>
+					<div className="icon icon--close" data-type="remove" ></div>
 				</div>
 			)
 		} else {

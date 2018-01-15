@@ -9,7 +9,7 @@ export default class IconClose extends Component {
 	render () {
 		
 		return (
-			<div className={`icon icon--close`} onClick={this.clicker}>
+			<div className={`icon icon--close icon--nomob`} onClick={this.clicker}>
 			</div>
 		)
 	}

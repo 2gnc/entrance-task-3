@@ -4,25 +4,37 @@ import IconClose from "../elements/IconClose";
 import Autocomplete from 'react-autocomplete';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import User from '../user/User';
 import EventParticipants from '../eventparticipants/EventParticipants';
+import EventRecomendations from '../eventRecomendations/EventRecomendations';
+
 
 class Eventeditor extends Component {
 	// при выборе в автокомплите обновлять состояние, добавлять юзеров в массив
 	
 	constructor(props) {
 		super (props);
-		this.state={
+		this.state = {
 			selectedUsers: [],
-			value: ''
+			value: '',
+			userlist: null,
+			loading: false
 		};
-		this.addUserHandler = this.addUserHandler.bind(this);
+		this.timer = null;
+		this.fakeRequest = this.fakeRequest.bind(this);
+		this.matchStateToTerm = this.matchStateToTerm.bind(this);
 	}
 	
-	addUserHandler(choice) {
-		this.setState(
-			this.state.selectedUsers.push(choice)
-		);
+	fakeRequest(value, cb) {
+		return setTimeout(cb, 500, value ?
+			this.state.userlist.filter(state => this.matchStateToTerm(state, value)) :
+			this.props.data.users
+		)
+	}
+	
+	matchStateToTerm(state, value) {
+		return (
+			state.login.toLowerCase().indexOf(value.toLowerCase()) !== -1
+		)
 	}
 	
 	render () {
@@ -30,37 +42,20 @@ class Eventeditor extends Component {
 			return null;
 		}
 		
-		console.log( "ss", this.props.data.users);
-		// обработка userss
-		let userslist = this.props.data.users;
-		let userslistofcompotents = this.props.data.users.map(
-			function( item, i ) {
-				return (
-					<User
-						id={+item.id}
-						avatarurl={item.avatarUrl}
-						login={item.login}
-						floor={item.homeFloor}
-						renderType="--listed"
-						deletehandler={null}
-						key={i}
-					/>
-				);
-			}
-		);
-		console.log('userslist', userslist);
-		let test = userslist[0];
-		console.log( test );
-		// обработка users
+		if(!this.state.userlist) {
+			this.state.userlist = this.props.data.users;
+		}
+		
 		
 		let hasButton = false;
-		let eventmode = this.props.routeParams.eventid; // new или id(num)
+		let eventmode = this.props.routeParams.eventid;
 		let heading;
 		if (eventmode === "new") {
 			heading = "Новая встреча"
 		} else {
 			heading = "Редактирование встречи"
 		}
+		let target;
 		let participants = this.state.selectedUsers;
 		
 		return (
@@ -124,38 +119,91 @@ class Eventeditor extends Component {
 										placeholder: "Например, Тор Одинович"
 									}}
 									wrapperStyle = {{}}
-									getItemValue={(item) => item}
-									items={userslist}
-									renderItem={(item) =>
-										<div key={item.id} className={"user user--listed"}>
+									getItemValue={(item) => item.login}
+									items={this.state.userlist}
+									renderItem={(item, highlighted) =>
+										<div key={item.id} className={"user user--listed"} style={{ backgroundColor: highlighted ? ' #F6F7F9' : 'transparent'}}>
 											<img className="user__pic" src={item.avatarUrl}/>
 											<div className="user__name">{item.login}</div>
 											<div className="user__desc">&middot; {item.homeFloor} этаж</div>
 										</div>
 									}
-									renderMenu={(items, value, style) => {
-										return (
+									renderMenu={(items, value, style) => (
+											
 											<div className="autocomplete__box">
 												<div className="autocomplete" >
-													<div className="autocomplete__wrapper"  children={items}></div>
+													{value === '' ? (
+														<div className="autocomplete__wrapper" children={items}></div>
+													) : this.state.loading ? (
+														<div className="item">загружается...</div>
+													) : items.length === 0 ? (
+														<div className="item">No matches for {value}</div>
+													) : <div className="autocomplete__wrapper" children={items}></div>
+													
+													}
 												</div>
 											</div>
-										)
-									}}
-									onChange={() => {console.log( 'change' )}}
+										
+									)}
+									value={this.state.value}
+									
+									onChange = {(e, value) => {
+											this.setState({
+												value,
+												loading: true,
+												userlist: []
+											});
+										
+										clearTimeout(this.timer);
+										this.timer = this.fakeRequest(value, (items) => {this.setState({ userlist: items, loading: false })})}
+									}
+									
 									onSelect={(value) => {
-										console.log(this.state,  value )
+										let usrname = value;
+										
+										this.state.userlist.forEach((item) => {
+											if (item.login == usrname ) {target=item}
+										});
+										if( this.state.selectedUsers.indexOf(target) === -1 ) {this.state.selectedUsers.push(target)}
+										this.forceUpdate();
 									}}
 								/>
-								<EventParticipants users={this.state.selectedUsers} />
+								<EventParticipants users={this.state} />
 							</div>
+							
 							<div className="event__separator"></div>
+							<div className="event__col event__col--recomendation">
+								<EventRecomendations/>
+							</div>
 						</div>
 					</div>
+					<div className="event__new-event-controls">
+						<div className="event__msg">Выберите переговорку</div>
+						<div className="event__buttons event__buttons--newevent">
+							<button className="btn btn--grey" disabled="disabled">Создать встречу</button>
+							<button className="btn btn--grey">Отмена</button>
+						</div>
+					</div>
+					
+					
 				</form>
 			</div>
 			
 		)
 	}
+	
+	renderItems(items) {
+		return items.map((item, index) => {
+			const text = item.props.children;
+			if (index === 0 || items[index - 1].props.children.charAt(0) !== text.charAt(0)) {
+				return [<div className="item item-header">{text.charAt(0)}</div>, item]
+			}
+			else {
+				return item
+			}
+		})
+	}
+
+
 }
 export default graphql(gql`query {users {id login homeFloor avatarUrl }}`, {})(Eventeditor);
