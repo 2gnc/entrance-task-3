@@ -6,6 +6,7 @@ import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
+import EventFooter from "../eventFooter/EventFooter";
 
 
 class Eventeditor extends Component {
@@ -46,6 +47,7 @@ class Eventeditor extends Component {
 			this.state.userlist = this.props.data.users;
 		}
 		
+		console.log(this.props);
 		
 		let hasButton = false;
 		let eventmode = this.props.routeParams.eventid;
@@ -184,6 +186,7 @@ class Eventeditor extends Component {
 						</div>
 					</div>
 					
+					<EventFooter mode={eventmode} />
 					
 				</form>
 			</div>
