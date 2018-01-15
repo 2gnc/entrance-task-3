@@ -10,7 +10,6 @@ export default class Timeline extends Component {
 		let times = ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"];
 		let currentTime = this.props.currentDay;
 		let position = "";
-		let coord = 1;
 		let isInPast = "";
 		let time = "";
 		

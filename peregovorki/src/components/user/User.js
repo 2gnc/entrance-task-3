@@ -2,10 +2,6 @@ import React, { Component } from 'react';
 
 export default class User extends Component {
 	
-	constructor( props ) {
-		super( props );
-	}
-	
 	render () {
 		if(this.props.renderType === "--listed") {
 			return(
@@ -18,7 +14,7 @@ export default class User extends Component {
 		} else if( this.props.renderType === "--in-event" ) {
 			return (
 				<div className = {"user user" + this.props.renderType }>
-					<img className = "user__pic" src={this.props.avatarurl} />
+					<img className = "user__pic" src={this.props.avatarurl} alt={this.props.login + " avatar"} />
 					<div className = "user__name user__name--in-event">{this.props.login}</div>
 					<div className="icon icon--close" data-type="remove" ></div>
 				</div>

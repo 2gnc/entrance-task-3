@@ -6,10 +6,6 @@ import gql from 'graphql-tag';
 
 class ScheduleWrapper extends Component {
 	
-	constructor (props) {
-		super (props);
-	}
-	
 	render () {
 		
 		if(!this.props.data.rooms) {
@@ -54,11 +50,6 @@ class ScheduleWrapper extends Component {
 				return obj
 			}
 		);
-		
-		//console.log("wrapper пропс, ", this.props.dateToDisplay);
-		console.log( "App перерисовал ScheduleWrapper" );
-		console.log("Schedule Wrapepr props", this.props);
-		console.log( floorsAndRooms );
 		
 		return (
 			<Schedule dateToDisplay={ this.props.dateToDisplay } rooms={floorsAndRooms} />

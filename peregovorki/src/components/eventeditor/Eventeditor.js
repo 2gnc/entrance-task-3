@@ -56,7 +56,6 @@ class Eventeditor extends Component {
 			heading = "Редактирование встречи"
 		}
 		let target;
-		let participants = this.state.selectedUsers;
 		
 		return (
 			<div className="App__wrapper">
@@ -123,7 +122,7 @@ class Eventeditor extends Component {
 									items={this.state.userlist}
 									renderItem={(item, highlighted) =>
 										<div key={item.id} className={"user user--listed"} style={{ backgroundColor: highlighted ? ' #F6F7F9' : 'transparent'}}>
-											<img className="user__pic" src={item.avatarUrl}/>
+											<img className="user__pic" src={item.avatarUrl} alt={item.login + " avatar"}/>
 											<div className="user__name">{item.login}</div>
 											<div className="user__desc">&middot; {item.homeFloor} этаж</div>
 										</div>
@@ -162,7 +161,7 @@ class Eventeditor extends Component {
 										let usrname = value;
 										
 										this.state.userlist.forEach((item) => {
-											if (item.login == usrname ) {target=item}
+											if (item.login === usrname ) {target=item}
 										});
 										if( this.state.selectedUsers.indexOf(target) === -1 ) {this.state.selectedUsers.push(target)}
 										this.forceUpdate();

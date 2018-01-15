@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
-import rus from 'moment/locale/ru';
+import 'moment/locale/ru';
 
 import 'react-datepicker/dist/react-datepicker.css';
 

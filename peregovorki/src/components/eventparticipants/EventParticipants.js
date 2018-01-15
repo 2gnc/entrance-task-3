@@ -7,7 +7,6 @@ export default class EventParticipants extends Component {
 		super( props );
 		this.state = {
 			users: this.props.users.selectedUsers,
-			test: ''
 		};
 	}
 	
@@ -15,17 +14,13 @@ export default class EventParticipants extends Component {
 		$('.event__participants').on( 'click', '*[data-type="remove"]', (event)=>{
 			let papa = $(event.target.parentNode);
 			let name = papa.find('.user__name').text();
-			console.log( name );
-			this.setState({test: name});
-			this.state.users = this.state.users.map((item)=> {
-				return item
+			let x;
+			this.state.users.map((item, i)=> {
+				if(item.login === name) { x = i } return null
 			});
-			console.log(this.state);
+			this.state.users.splice( x, [1]);
+			this.forceUpdate();
 		} )
-	}
-	
-	componentDidUpdate() {
-		console.log($('*[data-type="remove"]'));
 	}
 	
 	render() {
