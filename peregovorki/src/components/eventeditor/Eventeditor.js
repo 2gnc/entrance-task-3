@@ -31,7 +31,26 @@ class Eventeditor extends Component {
 		}
 		
 		console.log( "ss", this.props.data.users);
-		
+		// обработка userss
+		let userslist = this.props.data.users;
+		let userslistofcompotents = this.props.data.users.map(
+			function( item, i ) {
+				return (
+					<User
+						id={+item.id}
+						avatarurl={item.avatarUrl}
+						login={item.login}
+						floor={item.homeFloor}
+						renderType="--listed"
+						deletehandler={null}
+						key={i}
+					/>
+				);
+			}
+		);
+		console.log('userslist', userslist);
+		let test = userslist[0];
+		console.log( test );
 		// обработка users
 		
 		let hasButton = false;
@@ -42,6 +61,8 @@ class Eventeditor extends Component {
 		} else {
 			heading = "Редактирование встречи"
 		}
+		let participants = this.state.selectedUsers;
+		
 		return (
 			<div className="App__wrapper">
 				<Header hasButton = {hasButton} />
@@ -96,22 +117,35 @@ class Eventeditor extends Component {
 						<div className="event__row">
 							<div className="event__col">
 								<label className="label" htmlFor="eventUsersInpt">Участники</label>
+								
 								<Autocomplete
-									getItemValue={(item) => item.label}
-									items={[
-										
-										{ label: 'apple' },
-										{ label: 'banana' },
-										{ label: 'pear' }
-									]}
-									renderItem={(item, isHighlighted) =>
-										<div style={{ background: isHighlighted ? 'lightgray' : 'white' }}>
-											{item.label}
+									inputProps={{	id: 'eventUsersInpt',
+										className: 'inpt event__text-inpt',
+										placeholder: "Например, Тор Одинович"
+									}}
+									wrapperStyle = {{}}
+									getItemValue={(item) => item}
+									items={userslist}
+									renderItem={(item) =>
+										<div key={item.id} className={"user user--listed"}>
+											<img className="user__pic" src={item.avatarUrl}/>
+											<div className="user__name">{item.login}</div>
+											<div className="user__desc">&middot; {item.homeFloor} этаж</div>
 										</div>
 									}
-									value={this.state.value}
-									onSelect = {(value) => {console.log(value)} }
-
+									renderMenu={(items, value, style) => {
+										return (
+											<div className="autocomplete__box">
+												<div className="autocomplete" >
+													<div className="autocomplete__wrapper"  children={items}></div>
+												</div>
+											</div>
+										)
+									}}
+									onChange={() => {console.log( 'change' )}}
+									onSelect={(value) => {
+										console.log(this.state,  value )
+									}}
 								/>
 								<EventParticipants users={this.state.selectedUsers} />
 							</div>

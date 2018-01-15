@@ -2,20 +2,28 @@ import React, { Component } from 'react';
 
 export default class User extends Component {
 	
-	// пропсы
-	// ID
-	// avatarurl
-	// login
-	// floor
-	// renderType (--in-event --listed)
-	
 	render () {
-		return(
-			<div className={"user " + this.props.renderType}>
-				<img className="user__pic" src={this.props.avatar}/>
-				<div className="user__name">{this.props.login}</div>
-				<div className="user__desc">&middot; {this.props.floor}</div>
-			</div>
-		)
+		if(this.props.renderType === "--listed") {
+			return(
+				<div className={"user user" + this.props.renderType}>
+					<img className="user__pic" src={this.props.avatarurl}/>
+					<div className="user__name">{this.props.login}</div>
+					<div className="user__desc">&middot; {this.props.floor}</div>
+				</div>
+			)
+		} else if( this.props.renderType === "--in-event" ) {
+			return (
+				<div className = {"user user" + this.props.renderType }>
+					<img className = "user__pic" src={this.props.avatarurl} />
+					<div className = "user__name user__name--in-event">{this.props.login}</div>
+					<div className="icon icon--close" onClick={this.props.deletehandler} ></div>
+				</div>
+			)
+		} else {
+			return (
+				null
+			)
+		}
+		
 	}
 }
