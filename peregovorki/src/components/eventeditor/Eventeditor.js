@@ -174,7 +174,7 @@ class Eventeditor extends Component {
 							
 							<div className="event__separator"></div>
 							<div className="event__col event__col--recomendation">
-								<EventRecomendations/>
+								<EventRecomendations parent={this}/>
 							</div>
 						</div>
 					</div>
