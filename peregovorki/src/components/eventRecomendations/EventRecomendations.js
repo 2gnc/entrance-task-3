@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import Room from '../room/Room';
 import $ from 'jquery';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
-export default class EventRecomendations extends Component {
+class EventRecomendationsEmpty extends Component {
 	constructor( props ) {
 		super(props);
 		this.state = {
@@ -28,43 +30,11 @@ export default class EventRecomendations extends Component {
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
-		let roomsIds = [
-			{
-				"id": "1",
-				"title": "404",
-				"capacity": 5,
-				"floor": 4
-			},
-			{
-				"id": "2",
-				"title": "Деньги",
-				"capacity": 4,
-				"floor": 2
-			},
-			{
-				"id": "3",
-				"title": "Карты",
-				"capacity": 4,
-				"floor": 2
-			},
-			{
-				"id": "4",
-				"title": "Два ствола",
-				"capacity": 4,
-				"floor": 2
-			},
-			{
-				"id": "5",
-				"title": "3.14",
-				"capacity": 6,
-				"floor": 3
-			},
-			{
-				"id": "6",
-				"title": "Выручай - комната",
-				"capacity": 12,
-				"floor": 0
-			}];
+		if(!this.props.data.rooms) {
+			return null;
+		}
+		
+		let roomsIds = this.props.data.rooms;
 		/*Конец заглушки*/
 		
 		let rooms = roomsIds.map((items, i)=>{
@@ -89,3 +59,17 @@ export default class EventRecomendations extends Component {
 		)
 	}
 }
+
+const roomsQuery = gql`
+	query {
+  rooms {
+    id
+    title
+    capacity
+    floor
+  }
+}
+`;
+
+const EventRecomendations = graphql(roomsQuery)(EventRecomendationsEmpty);
+export default EventRecomendations
