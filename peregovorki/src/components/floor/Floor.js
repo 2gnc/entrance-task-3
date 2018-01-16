@@ -7,7 +7,7 @@ class Floor extends Component {
 		let rooms = this.props.rooms.map(
 			(items, i) => {
 				return (
-					<Room name={items.title} key={i} cap = {items.capacity} datay={items.id } />
+					<Room name={items.title} key={i} cap = {items.capacity} datay={items.id } layout="infloors" />
 				)
 			}
 		);
