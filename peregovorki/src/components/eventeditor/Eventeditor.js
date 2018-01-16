@@ -18,11 +18,14 @@ class Eventeditor extends Component {
 			loading: false,
 			selectedRoom: '',
 		};
+		
+		
 		this.timer = null;
 		this.fakeRequest = this.fakeRequest.bind(this);
 		this.matchStateToTerm = this.matchStateToTerm.bind(this);
 		this.selectedRoomUpd = this.selectedRoomUpd.bind(this);
 	}
+
 	fakeRequest(value, cb) {
 		return setTimeout(cb, 500, value ?
 			this.state.userlist.filter(state => this.matchStateToTerm(state, value)) :
