@@ -26,7 +26,6 @@ class EventRecomendationsEmpty extends Component {
 		});
 	}
 	render() {
-
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
