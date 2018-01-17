@@ -26,7 +26,7 @@ let testEvent = [
 	{
 		id: "2",
 		title: "Test",
-		dateStart: "2017-12-13T19:12:36.981Z",
+		dateStart: "2017-12-13T19:15:36.981Z",
 		dateEnd: "2017-12-13T19:40:36.981Z",
 		users: [ {"id": "1"}, {"id": "2"} ],
 		room: {"id": "2"}
@@ -89,28 +89,45 @@ let testEventsStage1 = testEvent.map( (item, i) => {
 	
 	let eventSlots = getEventSlots( startSlot, startTime, endTime, duration );
 	
- 	let getSlotInners = ( slots, dur, begin ) => {
-
- 		let arr = slots.map((itm, i)=> { // для каждого таймслота из списка занятых
- 			if( dur <= 60 ) {
- 				return ({
- 					timeslot: itm,
- 					begin: '', // минуты начала округлить, / 5 + 1 = номер интервала, с которого начинается событие
- 					width: Math.round( dur / 5 ), // интервалы по 5 минут - количество интервалов в событии
- 					isFinale: false,
- 					modifier: '',  // тут модификатор, описывающий внутренний busy-слот, его ширину w1-w12, интервал, с которого он начинается (0-11), и в рамках данного timeslot оканчивается ли event или распространяется на след слот (если таймслотов >1, то распространяется во всех слотах кроме последнего), а также сгенерированную строку - класс для div-а
- 				})
- 			} else {
- 				return ({
- 					timeslot: itm,
- 					//begin: '',
- 					//width: Math.round( dur / 5 ), // интервалы по 5 минут
- 					//isFinale: false,
- 					//modifier: '', // тут модификатор, описывающий внутренний busy-слот, его ширину w1-w12, интервал, с которого он начинается (0-11), и в рамках данного timeslot оканчивается ли event или распространяется на след слот (если таймслотов >1, то распространяется во всех слотах кроме последнего), а также сгенерированную строку - класс для div-а
- 				});
- 			}
+	/**
+	 * Function getSlotInners Для каждого слота формирует внутренние занятые слоты
+	 * @param {array} slots Массив занятых слотов
+	 * @param {number} dur длительность всего эвента в минутах
+	 * @param {object} begin экземпляр moment() с временем начала эвента
+	 * @param {object} end экземпляр moment() с временем конца эвента
+	 * @return {array} arr объект с параметрами внутреннего занятого слота в каждом таймслоте
+	 */
+ 	let getSlotInners = ( slots, dur, begin, end ) => {
+ 		let arr = slots.map((itm, i)=> {
+		  
+ 			let getBegin = () => { // начало если часы begin === slot, конец если часы end === slot, середина если dur >60 и begin часы < slot
+ 				if (  ) {
+				  return Math.floor(begin.format( 'mm' ) / 5) + 1;
+			  } else {
+ 				
+			  }
+			  
+		  };
+		  
+ 			let getWidth = () => {
+ 			  return null;
+		 };
+  /**
+	 * @typedef {object} Описывает один внутренний занятый слот в рамках одного таймслота (часа) для события. Если событие длится более часа, то задействовано будет больше одного таймслота.
+	 * @property {number} timeslot Таймслот, внутри которого будет создан иннерслот
+	 * @property {number} beginInterval Интервал, с которого начинается иннер.
+   * @property {number} width Количество занятых интервалов. Интервал - 5 минут. Если эвент занимает весь таймслот, то ширина иннера - 12.
+   * @property {boolean} isFinale Является ли это иннер завершающим или эвент прдолжится в следующем таймслоте.
+   * @property {string} cssClass Строка с классом, DOM-элемента, соответствующего иннеру.
+	 */
+      return ({
+        timeslot: itm,
+        beginInterval: getBegin(), // это номер интервала, с которого начинается внутренний слот // минуты начала округлить, / 5 + 1 = номер интервала, с которого начинается событие
+        width: getWidth(), //Math.round( dur / 5 ), // интервалы по 5 минут - количество интервалов в событии
+        isFinale: false,
+	      cssClass: '',  // тут модификатор, описывающий внутренний busy-слот, его ширину w1-w12, интервал, с которого он начинается (0-11), и в рамках данного timeslot оканчивается ли event или распространяется на след слот (если таймслотов >1, то распространяется во всех слотах кроме последнего), а также сгенерированную строку - класс для div-а
+      });
  		});
-	  console.log( slots, arr );
  		return arr;
  	};
 
@@ -122,16 +139,13 @@ let testEventsStage1 = testEvent.map( (item, i) => {
 		eventDuration: duration,
 		startSlot: startSlot,
 		targetSlots: eventSlots,
-		innerBusySlot: getSlotInners( eventSlots, duration, startSlot ), // массив объектов {слот, массив внутренних слотов}
-		})
-} );
+		innerBusySlot: getSlotInners( eventSlots, duration, startTime, endTime), // массив объектов {слот, массив внутренних слотов}
+		});
+});
 
-console.log('testEventsStage1', testEventsStage1);
-
-
-/* */		
-		let rooms = this.props.rooms;
-		console.log(rooms);
+	console.log('testEventsStage1', testEventsStage1);
+	
+	let rooms = this.props.rooms;
 
 		// 
 
