@@ -10,6 +10,7 @@ export default class Room extends Component {
 		this.getId = this.getId.bind(this);
 		this.getFloor = this.getFloor.bind(this);
 	}
+
 	getModifier() {
 		if( this.props.isSelected ) {
 			return ' recomendation--selected';
@@ -58,7 +59,8 @@ export default class Room extends Component {
 				);
 			}
 		}
-		render() {
+
+	render() {
 		if (this.props.layout === 'infloors') {
 			return (
 				<div className='room' data-roomid={this.getCoords()}>

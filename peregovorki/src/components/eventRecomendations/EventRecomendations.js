@@ -12,19 +12,23 @@ class EventRecomendationsEmpty extends Component {
 		};
 	}
 	componentDidMount() {
-		$( document ).ready(() => {
-			$( '.recomendation__box' ).on( 'click', ( '.recomendation' ), (event)=>{
-				event.stopPropagation();
-				let selectedRoomId = $(event.target.closest('.recomendation')).attr('data-roomid');
-				this.props.parent.selectedRoomUpd( selectedRoomId );
-				if( this.state.selectedRoom !== this.props.selectedRoom ) {
-					this.setState({
-						selectedRoom: this.props.selectedRoom
-					});
-				}
+		let setClicksHandler = ()=> {
+			$( document ).ready(() => {
+				$( '.recomendation__box' ).on( 'click', ( '.recomendation' ), (event)=>{
+					event.stopPropagation();
+					let selectedRoomId = $(event.target.closest('.recomendation')).attr('data-roomid');
+					this.props.parent.selectedRoomUpd( selectedRoomId );
+					if( this.state.selectedRoom !== this.props.selectedRoom ) {
+						this.setState({
+							selectedRoom: this.props.selectedRoom
+						});
+					}
+				});
 			});
-		});
+		}
+		setTimeout( setClicksHandler , 100);
 	}
+
 	render() {
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат

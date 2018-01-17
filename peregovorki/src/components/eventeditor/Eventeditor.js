@@ -19,7 +19,6 @@ class Eventeditor extends Component {
 			selectedRoom: '',
 		};
 		
-		
 		this.timer = null;
 		this.fakeRequest = this.fakeRequest.bind(this);
 		this.matchStateToTerm = this.matchStateToTerm.bind(this);
