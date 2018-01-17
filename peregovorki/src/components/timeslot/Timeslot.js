@@ -14,7 +14,7 @@ export default class Timeslot extends Component {
 				items.rooms.map(
 					(roo, i) => {
 						roomsinfloor.push(
-							<Rowslot addname={''} key={i} time={time} room={ roo.id } />
+							<Rowslot addname={''} key={i} time={time} room={ roo.id } /> // сюда добавлять массив с InnerSlots!!! (знаю roomId, и timeslot(time) ) 
 						);
 					}
 				);
@@ -25,7 +25,7 @@ export default class Timeslot extends Component {
 		);
 		
 		let now = this.props.isnow;
-		let x = (now ? <Now/> : '');
+		let x = ( now ? <Now/> : null);
 		
 		return (
 			<div className={this.props.position} disabled={this.props.disabled} data-time={this.props.time} data-now={this.props.isnow} >
