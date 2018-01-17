@@ -4,7 +4,6 @@ import App from './App';
 import {Router, Route, IndexRoute, browserHistory } from 'react-router';
 
 import Main from './layouts/Main';
-import Test from './components/elements/Test';
 
 import { ApolloProvider } from 'react-apollo';
 import { ApolloClient } from 'apollo-client';
