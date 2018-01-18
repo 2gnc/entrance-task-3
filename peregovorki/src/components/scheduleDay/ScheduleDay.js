@@ -11,6 +11,7 @@ export default class ScheduleDay extends Component {
 		this.getEvents = this.getEvents.bind(this);
 		this.getNodes = this.getNodes.bind(this);
 		this.pasteInners = this.pasteInners.bind(this);
+		this.makeDooms = this.makeDooms.bind(this);
 	}
 	
 	componentDidMount() {
@@ -24,7 +25,9 @@ export default class ScheduleDay extends Component {
 		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
 		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
 		//console.log( 'nodezz', this.getNodes(todayEvents) );
-		console.log('nodesAndInners', nodesAndInners)
+		//console.log('nodesAndInners', nodesAndInners);
+		this.makeDooms(nodesAndInners);
+		// создадим обычный массив объектов с нодами и массивом его иннеров
 	}
 	
 	componentDidUpdate() {
@@ -35,7 +38,8 @@ export default class ScheduleDay extends Component {
 		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
 		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
 		//console.log( 'nodezz', this.getNodes(todayEvents) );
-		console.log('nodesAndInners', nodesAndInners)
+		console.log('nodesAndInners', nodesAndInners);
+		this.makeDooms(nodesAndInners);
 	}
 	getNodes( todayEvents ) {
 
@@ -124,6 +128,22 @@ export default class ScheduleDay extends Component {
 		// };
 		// console.log( 'nodesAndInners', nodesAndInners);
 		return nodesAndInners;
+	}
+	makeDooms(nodes){
+		let arr =[];
+		for (let key in nodes) {
+			let obj = {};
+			obj.node = nodes[key].node;
+			obj.inners = [];
+			arr.push(
+				obj
+			);
+			for (let i in nodes[key].inners) {
+				obj.inners.push( nodes[key].inners[i] );
+			}
+		}
+		console.log('arr', arr); // обычный массив нод и их иннеров
+		// TODO отсортировать ноды по интервалу начала, реализовать алгоритм создания DOM узлов
 	}
 	// getDoomSlots() {
 	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
@@ -214,6 +234,14 @@ export default class ScheduleDay extends Component {
 				title: "Test2",
 				dateStart: "2018-01-19T12:40:01.981Z",
 				dateEnd: "2018-01-19T12:50:00.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "5"}
+			},
+			{
+				id: "11",
+				title: "Test2",
+				dateStart: "2018-01-19T12:35:01.981Z",
+				dateEnd: "2018-01-19T12:40:00.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "5"}
 			}
