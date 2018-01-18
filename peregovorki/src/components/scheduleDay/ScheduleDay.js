@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import moment from 'moment';
-import Timeslot from "../timeslot/Timeslot"
+import Timeslot from "../timeslot/Timeslot";
+import $ from 'jquery';
 
 export default class ScheduleDay extends Component {
 	constructor( props ) {
@@ -8,18 +9,31 @@ export default class ScheduleDay extends Component {
 		this.getDoomSlots = this.getDoomSlots.bind(this);
 		this.getTodayEvents = this.getTodayEvents.bind(this);
 		this.getEvents = this.getEvents.bind(this);
+		this.showEvents = this.showEvents.bind(this);
 	}
 	
 	componentDidMount() {
-		console.log( this.getDoomSlots() );
-		//console.log( this.getTodayEvents() );
+		console.log('didMount', this.props, 'слоты', this.getDoomSlots(), 'события в этот день', this.getTodayEvents( this.getEvents() ) );
+		this.showEvents( this.getTodayEvents( this.getEvents() ), this.getDoomSlots() );
 	}
 	
 	componentDidUpdate() {
-		console.log( this.getDoomSlots() );
-		//console.log( this.getTodayEvents() );
+		console.log( 'didUpdate', this.props, 'слоты', this.getDoomSlots(), 'события в этот день', this.getTodayEvents( this.getEvents() ) );
 	}
-
+	showEvents( todayEvents, nodes ) { // массив событий на сегодня, массив dom-узлов
+		let room;
+		let xx;
+		for ( let k = 0; k < todayEvents.length; k++ ) {
+			room = todayEvents[k].eventRoom; //строка
+			let timeslot;
+			todayEvents[k].innerBusySlot.forEach( (item, m) => {
+				timeslot = item.timeslot;
+				xx = $('div.schedule__rowslot[data-room='+room+'][data-time='+timeslot+']'); // получили объект, туда положить inner
+			});
+			console.log( 'coords', room, timeslot, xx );
+		}
+	}
+	
 	getDoomSlots() {
 		let slots = document.getElementsByClassName( 'schedule__rowslot' );
 		let targetSlots = [];
@@ -54,7 +68,7 @@ export default class ScheduleDay extends Component {
 				dateStart: "2018-01-18T19:40:36.981Z",
 				dateEnd: "2018-01-18T20:35:36.981Z",
 				users: [ {"id": "1"}, {"id": "2"} ],
-				room: {"id": "2"}
+				room: {"id": "5"}
 			},
 			{
 				id: "4",
@@ -70,7 +84,7 @@ export default class ScheduleDay extends Component {
 				dateStart: "2018-01-18T11:00:01.981Z",
 				dateEnd: "2018-01-18T14:00:57.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "2"}
+				room: {"id": "3"}
 			}
 		];
 		let x = testEvent.map(( item, i ) => {
@@ -210,6 +224,7 @@ export default class ScheduleDay extends Component {
 	};
 	
 	getTodayEvents( events ) {
+		console.log( 'получаем события на ', this.props.dayToDisplay);
 		let todayEvents = [];
 		events.forEach( ( item, i ) => {
 			if ( item.eventStart.isSame( this.props.dayToDisplay, 'day' ) ) {
@@ -219,8 +234,7 @@ export default class ScheduleDay extends Component {
 		return todayEvents;
 	}
 	render() {
-	
-	console.log(this.props.dayToDisplay.format( 'DD MM YYYY' ), this.getTodayEvents( this.getEvents() ) );
+	//console.log(this.props.dayToDisplay.format( 'DD MM YYYY' ), this.getTodayEvents( this.getEvents() ) );
 	
 	let rooms = this.props.rooms;
 		
