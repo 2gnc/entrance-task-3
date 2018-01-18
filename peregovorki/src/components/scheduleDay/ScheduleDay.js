@@ -141,9 +141,24 @@ export default class ScheduleDay extends Component {
 			for (let i in nodes[key].inners) {
 				obj.inners.push( nodes[key].inners[i] );
 			}
+
 		}
 		console.log('arr', arr); // обычный массив нод и их иннеров
-		// TODO отсортировать ноды по интервалу начала, реализовать алгоритм создания DOM узлов
+		//сортируем иннеры
+		for (let i in arr ) {
+			//console.log( 'to sort', arr[i].inners );
+			arr[i].inners.sort( (a,b) => {
+				if( a.beginInterval > b.beginInterval ) {
+					return 1;
+				} else if ( a.beginInterval === b.beginInterval ) {
+					return 0;
+				} else {
+					return -1;
+				}
+			} );
+			//console.log(arr[i].inners);
+		}
+		// TODO отсортировать ноды по интервалу начала(и так отсортированы... магия?), реализовать алгоритм создания DOM узлов
 	}
 	// getDoomSlots() {
 	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
@@ -222,13 +237,14 @@ export default class ScheduleDay extends Component {
 				room: {"id": "5"}
 			},
 			{
-				id: "9",
+				id: "11",
 				title: "Test2",
-				dateStart: "2018-01-19T12:10:01.981Z",
-				dateEnd: "2018-01-19T12:30:00.981Z",
+				dateStart: "2018-01-19T12:35:01.981Z",
+				dateEnd: "2018-01-19T12:40:00.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "5"}
 			},
+			
 			{
 				id: "10",
 				title: "Test2",
@@ -238,13 +254,14 @@ export default class ScheduleDay extends Component {
 				room: {"id": "5"}
 			},
 			{
-				id: "11",
+				id: "9",
 				title: "Test2",
-				dateStart: "2018-01-19T12:35:01.981Z",
-				dateEnd: "2018-01-19T12:40:00.981Z",
+				dateStart: "2018-01-19T12:10:01.981Z",
+				dateEnd: "2018-01-19T12:30:00.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "5"}
-			}
+			},
+			
 		];
 		let x = testEvent.map(( item, i ) => {
 			let startSlot = +moment ( item.dateStart ).utcOffset ( 0 ).format ( 'H' );
