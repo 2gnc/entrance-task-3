@@ -6,44 +6,65 @@ import $ from 'jquery';
 export default class ScheduleDay extends Component {
 	constructor( props ) {
 		super( props );
-		this.getDoomSlots = this.getDoomSlots.bind(this);
+		//this.getDoomSlots = this.getDoomSlots.bind(this);
 		this.getTodayEvents = this.getTodayEvents.bind(this);
 		this.getEvents = this.getEvents.bind(this);
-		this.showEvents = this.showEvents.bind(this);
+		this.getNodes = this.getNodes.bind(this);
 	}
 	
 	componentDidMount() {
-		console.log('didMount', this.props, 'слоты', this.getDoomSlots(), 'события в этот день', this.getTodayEvents( this.getEvents() ) );
-		this.showEvents( this.getTodayEvents( this.getEvents() ), this.getDoomSlots() );
+		$( '.timing__day-to-display' ).on( 'click', ()=>{
+			setTimeout(()=>{this.forceUpdate();}, 100);
+		});
+		let allEvents = this.getEvents();
+		let todayEvents = this.getTodayEvents(allEvents);
+		let todayNodes = this.getNodes(todayEvents);
+		console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
+		
 	}
 	
 	componentDidUpdate() {
-		console.log( 'didUpdate', this.props, 'слоты', this.getDoomSlots(), 'события в этот день', this.getTodayEvents( this.getEvents() ) );
+		let allEvents = this.getEvents();
+		let todayEvents = this.getTodayEvents(allEvents);
+		let todayNodes = this.getNodes(todayEvents);
+		console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
+		
 	}
-	showEvents( todayEvents, nodes ) { // массив событий на сегодня, массив dom-узлов
+	getNodes( todayEvents ) {
+		let targetNodes =[];
 		let room;
-		let xx;
+		let targetNode;
 		for ( let k = 0; k < todayEvents.length; k++ ) {
 			room = todayEvents[k].eventRoom; //строка
 			let timeslot;
 			todayEvents[k].innerBusySlot.forEach( (item, m) => {
 				timeslot = item.timeslot;
-				xx = $('div.schedule__rowslot[data-room='+room+'][data-time='+timeslot+']'); // получили объект, туда положить inner
+				targetNode = $('div.schedule__rowslot[data-room='+room+'][data-time='+timeslot+']'); // получили объект, туда положить inner!!!!
 			});
-			console.log( 'coords', room, timeslot, xx );
-		}
+			
+			let isItUnique = !targetNodes.find( x => $(x).attr( 'id' ) === $(targetNode).attr( 'id' ) );
+
+			console.log( targetNode, isItUnique );
+			if ( isItUnique ) {targetNodes.push(targetNode)};
+			
+		};
+		return targetNodes;
 	}
 	
-	getDoomSlots() {
-		let slots = document.getElementsByClassName( 'schedule__rowslot' );
-		let targetSlots = [];
-		for ( let i = 0; i < slots.length; i++ ) {
-			if( slots[i].classList.length === 1 ) {
-				targetSlots.push( slots[i] );
-			}
-		}
-		return targetSlots;
+	// получим все уникальные ноды на выбранный день, сделаем массив с объектаи нода - ее иннеры
+	pasteInners( nodes ) {
+	
 	}
+	// getDoomSlots() {
+	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
+	// 	let targetSlots = [];
+	// 	for ( let i = 0; i < slots.length; i++ ) {
+	// 		if( slots[i].classList.length === 1 ) {
+	// 			targetSlots.push( slots[i] );
+	// 		}
+	// 	}
+	// 	return targetSlots;
+	// }
 	getEvents() {
 		let testEvent = [
 			{
@@ -85,6 +106,30 @@ export default class ScheduleDay extends Component {
 				dateEnd: "2018-01-18T14:00:57.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "3"}
+			},
+			{
+				id: "6",
+				title: "Test2",
+				dateStart: "2018-01-18T11:00:01.981Z",
+				dateEnd: "2018-01-18T11:20:57.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "1"}
+			},
+			{
+				id: "7",
+				title: "Test2",
+				dateStart: "2018-01-18T11:30:01.981Z",
+				dateEnd: "2018-01-18T12:00:57.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "1"}
+			},
+			{
+				id: "8",
+				title: "Test2",
+				dateStart: "2018-01-19T11:30:01.981Z",
+				dateEnd: "2018-01-19T11:59:57.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "5"}
 			}
 		];
 		let x = testEvent.map(( item, i ) => {
@@ -224,7 +269,7 @@ export default class ScheduleDay extends Component {
 	};
 	
 	getTodayEvents( events ) {
-		console.log( 'получаем события на ', this.props.dayToDisplay);
+		//console.log( 'получаем события на ', this.props.dayToDisplay);
 		let todayEvents = [];
 		events.forEach( ( item, i ) => {
 			if ( item.eventStart.isSame( this.props.dayToDisplay, 'day' ) ) {
@@ -234,8 +279,7 @@ export default class ScheduleDay extends Component {
 		return todayEvents;
 	}
 	render() {
-	//console.log(this.props.dayToDisplay.format( 'DD MM YYYY' ), this.getTodayEvents( this.getEvents() ) );
-	
+	let isToday = this.props.dayToDisplay.isSame( moment(), 'day' );
 	let rooms = this.props.rooms;
 		
 		function makeSlots() {
@@ -245,13 +289,13 @@ export default class ScheduleDay extends Component {
 			for( let i = 0; i <= 16; i++ ) {
 				if( i === 0 ) {
 					cl = "schedule__timeslot schedule__timeslot--first";
-					arr.push( <Timeslot position={cl} key={i} disabled={true} rooms={rooms} spec="isfirst" x={i} time={i + 7} isnow={( now === (i+7))} /> )
+					arr.push( <Timeslot isToday={isToday} position={cl} key={i} disabled={true} rooms={rooms} spec="isfirst" x={i} time={i + 7} isnow={( now === (i+7))} /> )
 				} else if( i === 16 ) {
 					cl = "schedule__timeslot schedule__timeslot--last";
-					arr.push( <Timeslot position={cl} key={i} disabled={true} rooms={rooms} spec="islast" x={i} time={i + 7} isnow={( now === (i+7))} /> )
+					arr.push( <Timeslot isToday={isToday} position={cl} key={i} disabled={true} rooms={rooms} spec="islast" x={i} time={i + 7} isnow={( now === (i+7))} /> )
 				} else {
 					cl="schedule__timeslot";
-					arr.push ( <Timeslot position={cl} key={i} disabled={false} rooms={rooms} spec="ismid" x={i} time={i + 7} isnow={( now === (i+7))} /> )
+					arr.push ( <Timeslot isToday={isToday} position={cl} key={i} disabled={false} rooms={rooms} spec="ismid" x={i} time={i + 7} isnow={( now === (i+7))} /> )
 				}
 			}
 			return arr;

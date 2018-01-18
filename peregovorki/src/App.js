@@ -21,14 +21,13 @@ export default class App extends Component {
 	}
 	
 	render() {
-
 		let hasButton = true;
 		
 		return (
 			<div className="App__wrapper">
 				<Header hasButton = {hasButton} />
 				<Timing parent={this}  />
-				<ScheduleWrapper dateToDisplay={this.state.dayToDisplay} />
+				<ScheduleWrapper dateToDisplay={this.state.dayToDisplay} parent = {this} />
 			</div>
 		);
 	}

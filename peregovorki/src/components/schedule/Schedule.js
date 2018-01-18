@@ -6,7 +6,6 @@ import ScheduleDay from './../scheduleDay/ScheduleDay'
 export default class Schedule extends Component {
 	
 	render() {
-		//console.log("Schedule все props", this.props);
 
 		return(
 			

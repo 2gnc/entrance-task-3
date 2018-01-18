@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
 import Schedule from './../schedule/Schedule'
-
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
 class ScheduleWrapper extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			dayToDispaly: this.props.parent.state.dayToDisplay,
+		}
+	}
 	
 	render () {
-		
+	
 		if(!this.props.data.rooms) {
 			return null;
 		}
@@ -50,7 +55,7 @@ class ScheduleWrapper extends Component {
 				return obj
 			}
 		);
-		
+
 		return (
 			<Schedule dateToDisplay={ this.props.dateToDisplay } rooms={floorsAndRooms} />
 		)

@@ -40,8 +40,7 @@ export default class Datepick extends Component {
   }
   
   render() {
-  	//console.log( "Datepick state: ", this.state);
-  	
+	  
     return <DatePicker
         selected = {this.state.startDate}
         onChange = {this.handleChange}

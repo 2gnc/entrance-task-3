@@ -8,7 +8,6 @@ export default class Dayline extends Component {
 		super( props );
 		this.state = {
 			currentDate: moment()
-			//today: moment()
 		};
 	}
 	
@@ -17,13 +16,11 @@ export default class Dayline extends Component {
 		this.setState({
 			currentDate: data
 		});
-		
 		this.props.parent.dateHandler(data);
 		
 	}
 	
 	render() {
-		//console.log( "(2)Dayline state: ", this.state.currentDate );
 
 		let needCurrent;
 		let datepicker = <Datepick className = '' parent = {this} daySelected = {this.state.currentDate}  />;
