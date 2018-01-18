@@ -10,6 +10,7 @@ export default class ScheduleDay extends Component {
 		this.getTodayEvents = this.getTodayEvents.bind(this);
 		this.getEvents = this.getEvents.bind(this);
 		this.getNodes = this.getNodes.bind(this);
+		this.pasteInners = this.pasteInners.bind(this);
 	}
 	
 	componentDidMount() {
@@ -18,42 +19,111 @@ export default class ScheduleDay extends Component {
 		});
 		let allEvents = this.getEvents();
 		let todayEvents = this.getTodayEvents(allEvents);
-		let todayNodes = this.getNodes(todayEvents);
-		console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
-		
+		//let todayNodes = this.getNodes(todayEvents);
+		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
+		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
+		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
+		//console.log( 'nodezz', this.getNodes(todayEvents) );
+		console.log('nodesAndInners', nodesAndInners)
 	}
 	
 	componentDidUpdate() {
 		let allEvents = this.getEvents();
 		let todayEvents = this.getTodayEvents(allEvents);
-		let todayNodes = this.getNodes(todayEvents);
-		console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
-		
+		//let todayNodes = this.getNodes(todayEvents);
+		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
+		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
+		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
+		//console.log( 'nodezz', this.getNodes(todayEvents) );
+		console.log('nodesAndInners', nodesAndInners)
 	}
 	getNodes( todayEvents ) {
+
+		let tests =[];
 		let targetNodes =[];
 		let room;
 		let targetNode;
-		for ( let k = 0; k < todayEvents.length; k++ ) {
+		for ( let k = 0; k < todayEvents.length; k++ ) { //каждое событие event
 			room = todayEvents[k].eventRoom; //строка
 			let timeslot;
-			todayEvents[k].innerBusySlot.forEach( (item, m) => {
+			todayEvents[k].innerBusySlot.forEach( (item, m) => { // каждый innerSlot в эвенте
 				timeslot = item.timeslot;
-				targetNode = $('div.schedule__rowslot[data-room='+room+'][data-time='+timeslot+']'); // получили объект, туда положить inner!!!!
+				targetNode = $('div.schedule__rowslot[data-room='+room+'][data-time='+timeslot+']'); // получили объект, туда положить inner!!!!  // нода, где должен быть иннер
+				
+				let obj ={};
+				obj.node = targetNode;
+				obj.inner = item;
+				tests.push( obj );
 			});
 			
 			let isItUnique = !targetNodes.find( x => $(x).attr( 'id' ) === $(targetNode).attr( 'id' ) );
-
-			console.log( targetNode, isItUnique );
+			
 			if ( isItUnique ) {targetNodes.push(targetNode)};
 			
+			
+			
+			//создаем объект
+			// let obj ={};
+			// if (isItUnique) {
+			// 	obj.node = targetNode;
+			// 	obj.inners = [];
+			// 	todayEvents[k].innerBusySlot.forEach( (item, i) => {
+			// 		obj.inners.push(item);
+			// 	} );
+			// } else { // значит объект уже есть
+			//
+			// }
+			//tests.push(obj);
+			// конец объекта
+			
 		};
-		return targetNodes;
+
+		return tests;
 	}
-	
+	//
+	// [ {
+	// 		node: node,
+	// 		inners: [{inner}, {inner}]
+	// 	}
+	// 	]
+	//
 	// получим все уникальные ноды на выбранный день, сделаем массив с объектаи нода - ее иннеры
-	pasteInners( nodes ) {
-	
+	pasteInners( nodez ) {
+		//console.log( nodez );
+		
+		let nodesAndInners = [];
+		
+		for ( let i = 0; i < nodez.length; i++ ) {
+			
+			let id = nodez[i].node.attr ( 'id' );
+			
+			//console.log( i, 'создаю ИД', id);
+			
+			if( nodesAndInners[id] === undefined ) {
+				
+				nodesAndInners[ id ] = {
+					inners: []
+				};
+				//console.log ( 'создаю структуру', nodesAndInners[ id ] );
+			}
+				nodesAndInners[id].node = nodez[i].node;
+				nodesAndInners[id].inners.push ( nodez[i].inner );
+				//console.log(i);
+			
+			// if(nodesAndInners[id]){
+			// 	nodesAndInners[id].inners.push(nodes[ i ].inner)
+			// } else {
+			// 	nodesAndInners[id] = {
+			// 		inners: []
+			// 	};
+			// }
+			
+		}
+		// for(let item in nodesAndInners){
+		// 	//console.log('pss', nodesAndInners[item].node )
+		// };
+		// console.log( 'nodesAndInners', nodesAndInners);
+		return nodesAndInners;
 	}
 	// getDoomSlots() {
 	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
@@ -128,6 +198,22 @@ export default class ScheduleDay extends Component {
 				title: "Test2",
 				dateStart: "2018-01-19T11:30:01.981Z",
 				dateEnd: "2018-01-19T11:59:57.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "5"}
+			},
+			{
+				id: "9",
+				title: "Test2",
+				dateStart: "2018-01-19T12:10:01.981Z",
+				dateEnd: "2018-01-19T12:30:00.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "5"}
+			},
+			{
+				id: "10",
+				title: "Test2",
+				dateStart: "2018-01-19T12:40:01.981Z",
+				dateEnd: "2018-01-19T12:50:00.981Z",
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "5"}
 			}
