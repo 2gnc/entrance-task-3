@@ -130,6 +130,9 @@ export default class ScheduleDay extends Component {
 		return nodesAndInners;
 	}
 	makeDooms(nodes){
+		// очищаем все ноды
+		$( '.schedule__rowslot' ).empty();
+		
 		let arr =[];
 		for (let key in nodes) {
 			let obj = {};
@@ -159,6 +162,31 @@ export default class ScheduleDay extends Component {
 			//console.log(arr[i].inners);
 		}
 		// TODO отсортировать ноды по интервалу начала(и так отсортированы... магия?), реализовать алгоритм создания DOM узлов
+		// создаем наконец узлы
+		for ( let i in arr ) {
+			for ( let k in arr[i].inners) {
+				let inners = arr[i].inners; // внутренние
+				let node = arr[i].node; // нода
+				
+				if (inners.length === 1) {
+					if( inners[0].beginInterval === 1 &&  inners[0].width === 12) { //с начала и до конца на все интервалы
+						node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w12" data-event="' + inners[0].room + '"></div>' );
+					} else if ( inners[0].beginInterval === 1 &&  inners[0].width < 12 ) { // сначала и короткий, он является завершающим в любом случае, раз после него пустой блок
+						let emptywidth = 12 - inners[0].width;
+						if( inners[0].width > 0 ) {
+							node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].room + '"></div>' );
+						}
+						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + emptywidth +'"></div>' );
+					} else if ( inners[0].beginInterval !== 1 &&  inners[0].width < 12 ) {
+						let emptywidth = 12 - inners[0].width;
+						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + emptywidth +'"></div>' );
+						if( inners[0].width > 0 ) {
+							node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].room + '"></div>' );
+						}
+					}
+				}
+			}
+		}
 	}
 	// getDoomSlots() {
 	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
@@ -261,6 +289,14 @@ export default class ScheduleDay extends Component {
 				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
 				room: {"id": "5"}
 			},
+			{
+				id: "11",
+				title: "Test2",
+				dateStart: "2018-01-19T13:00:01.981Z",
+				dateEnd: "2018-01-19T14:00:00.981Z",
+				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
+				room: {"id": "5"}
+			},
 			
 		];
 		let x = testEvent.map(( item, i ) => {
@@ -268,6 +304,7 @@ export default class ScheduleDay extends Component {
 			let startTime = moment ( item.dateStart ).utcOffset ( 0 );
 			let endTime = moment ( item.dateEnd ).utcOffset ( 0 );
 			let duration = Math.floor ( ( moment ( item.dateEnd ) - moment ( item.dateStart ) ) / 60000 ); // в минутах
+			let eventId = item.id
 			let count = 0;
 			
 			/**
@@ -315,7 +352,7 @@ export default class ScheduleDay extends Component {
 					 */
 					let getBeginInterval = () => {
 						if ( +begin.format ( 'HH' ) === itm ) {
-							return Math.floor ( begin.format ( 'mm' ) / 5 ) + 1;
+							return Math.floor ( begin.format ( 'mm' ) / 5 );
 						} else {
 							return 1;
 						}
@@ -330,7 +367,7 @@ export default class ScheduleDay extends Component {
 								( Math.floor ( end.format ( 'mm' ) / 5 ) + 1 ) - getBeginInterval ()
 							)
 						} else if ( +begin.format ( 'HH' ) === itm && slots.length > 1 ) {
-							return 12 - getBeginInterval ();
+							return 12 - getBeginInterval () +1;//!!
 						} else if ( dur > 60 && +begin.format ( 'HH' ) < itm && +end.format ( 'HH' ) > itm ) {
 							return 12;
 						} else {
@@ -355,6 +392,7 @@ export default class ScheduleDay extends Component {
 					};
 					/**
 					 * @typedef {object} Описывает один внутренний занятый слот в рамках одного таймслота (часа) для события. Если событие длится более часа, то задействовано будет больше одного таймслота.
+					 * @property {string} room идентификатор комнаты
 					 * @property {number} timeslot Таймслот, внутри которого будет создан иннерслот
 					 * @property {number} beginInterval Интервал, с которого начинается иннер.
 					 * @property {number} width Количество занятых интервалов. Интервал - 5 минут. Если эвент занимает весь таймслот, то ширина иннера - 12.
@@ -362,6 +400,7 @@ export default class ScheduleDay extends Component {
 					 * @property {string} cssClass Строка с классом, DOM-элемента, соответствующего иннеру.
 					 */
 					return ({
+						room: eventId,
 						timeslot: itm,
 						beginInterval: getBeginInterval (),
 						width: getIntervalWidth (),
