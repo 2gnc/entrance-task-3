@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import Timeslot from "../timeslot/Timeslot";
+//import EventInline from "../eventInline/EventInline";
 import $ from 'jquery';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -14,6 +15,7 @@ class ScheduleDay extends Component {
 		this.pasteInners = this.pasteInners.bind(this);
 		this.makeDooms = this.makeDooms.bind(this);
 		this.fillByEmpty = this.fillByEmpty.bind(this);
+		this.addEvents = this.addEvents.bind(this);
 	}
 	
 	componentDidMount() {
@@ -28,6 +30,22 @@ class ScheduleDay extends Component {
 		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
 		this.makeDooms(nodesAndInners);
 		this.fillByEmpty();
+		this.addEvents( todayEvents );
+	}
+	addEvents(todayEvents) {
+		for ( let i = 0; i < todayEvents.length; i++ ) {
+			let width = todayEvents[i].eventDuration / 5;
+			let slot = todayEvents[i].innerBusySlot[0].timeslot;
+			let room = todayEvents[i].eventRoom;
+			let targetslot = $('div.schedule__rowslot[data-room='+room+'][data-time='+slot+']');
+			
+			//console.log('ss', slot, room, targetslot, width );
+			//console.log( targetslot.children( '.schedule__innerslot--busy' ) );
+			targetslot.children( '.schedule__innerslot--busy' ).empty();
+			targetslot.children( '.schedule__innerslot--busy' ).append(
+				'<div class="schedule__event schedule__event--w' + width + '" ></div>'
+			);
+		}
 	}
 	getNodes( todayEvents ) {
 		let tests =[];
@@ -207,6 +225,7 @@ class ScheduleDay extends Component {
 				} else {
 				
 				}
+				
 				return slots;
 			};
 			let eventSlots = getEventSlots ( startSlot, duration );
@@ -245,30 +264,43 @@ class ScheduleDay extends Component {
 						let endHour = +end.format ( 'HH' );
 						
 						if ( dur === 60 && begHour === itm && startInterval === 1 ) {// это полный час с начала часа
+							//console.log(1);
 							return 12
 						} else if ( dur === 60 && begHour === itm && startInterval > 1 ) { // это полный час, голова
+							//console.log(2);
 							return 12 - startInterval + 1;
 						} else if ( dur === 60 && begHour < itm ) {// это полный час, хвост
+							//console.log(3);
 							return endInterval;
 						} else if ( dur < 60 && begHour === itm && startInterval === 1 ) {// это меньше часа, на один слот, с начала часа
+							//console.log(4);
 							return endInterval;
 						} else if ( dur < 60 && begHour === itm &&  startInterval > 1 && endHour === itm ) { //это меньше часа на один слот, не с начала часа
+							//console.log(5);
 							return 12 - endInterval - startInterval + 1;
 						} else if ( dur < 60 && begHour === itm && endHour > itm ) {//это меньше часа на два слота, голова
+							//console.log(6);
 							return 12 - startInterval - 1;
 						} else if ( dur < 60 && begHour < itm && endHour === itm ) {//это меньше часа на два слота, хвост
+							//console.log(7);
 							return endInterval;
 						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour === itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (голова)
+							//console.log(8);
 							return 12;
-						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour < itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (хвост) равно 0
+						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour < itm && dur < 63) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (хвост) равно 0
+							//console.log(9);
 							return endInterval;
 						} else if ( dur >= 63 && begHour === itm && startInterval === 1 ) { // событие больше часа, это голова, начало с начала часа
+							//console.log(10);
 							return 12;
 						} else if ( dur >= 63 && begHour === itm && startInterval > 1 ) {// событие больше часа, это голова, начало с середины часа
+							//console.log(11);
 							return 12 - startInterval + 1;
 						} else if ( dur >= 63 && begHour < itm && endHour > itm ) {// событие больше часа, это тело
+							//console.log(12);
 							return 12;
 						} else {// событие больше часа, это хвост
+							//console.log(13);
 							return endInterval;
 						}
 					};
