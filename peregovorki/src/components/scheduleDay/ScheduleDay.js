@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import moment from 'moment';
 import Timeslot from "../timeslot/Timeslot";
 import $ from 'jquery';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
-export default class ScheduleDay extends Component {
+class ScheduleDay extends Component {
 	constructor( props ) {
 		super( props );
 		//this.getDoomSlots = this.getDoomSlots.bind(this);
@@ -19,6 +21,21 @@ export default class ScheduleDay extends Component {
 		$( '.timing__day-to-display' ).on( 'click', ()=>{
 			setTimeout(()=>{this.forceUpdate();}, 100);
 		});
+		////let allEvents = this.getEvents();
+		////let todayEvents = this.getTodayEvents(allEvents);
+		//let todayNodes = this.getNodes(todayEvents);
+		////let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
+		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
+		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
+		//console.log( 'nodezz', this.getNodes(todayEvents) );
+		//console.log('nodesAndInners', nodesAndInners);
+		////this.makeDooms(nodesAndInners);
+		////this.fillByEmpty();
+		// создадим обычный массив объектов с нодами и массивом его иннеров
+	}
+	
+	componentDidUpdate() {
+		//console.log(this.props);
 		let allEvents = this.getEvents();
 		let todayEvents = this.getTodayEvents(allEvents);
 		//let todayNodes = this.getNodes(todayEvents);
@@ -29,20 +46,6 @@ export default class ScheduleDay extends Component {
 		//console.log('nodesAndInners', nodesAndInners);
 		this.makeDooms(nodesAndInners);
 		this.fillByEmpty();
-		// создадим обычный массив объектов с нодами и массивом его иннеров
-	}
-	
-	componentDidUpdate() {
-		let allEvents = this.getEvents();
-		let todayEvents = this.getTodayEvents(allEvents);
-		//let todayNodes = this.getNodes(todayEvents);
-		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
-		//console.log( 'todayNodes', todayNodes, 'todayEvents ', todayEvents );
-		//console.log( this.pasteInners( this.getNodes(todayEvents) ) );
-		//console.log( 'nodezz', this.getNodes(todayEvents) );
-		console.log('nodesAndInners', nodesAndInners);
-		this.makeDooms(nodesAndInners);
-		this.fillByEmpty();
 	}
 	getNodes( todayEvents ) {
 
@@ -51,6 +54,7 @@ export default class ScheduleDay extends Component {
 		let room;
 		let targetNode;
 		for ( let k = 0; k < todayEvents.length; k++ ) { //каждое событие event
+			//console.log('событие сегодня', todayEvents[k]);
 			room = todayEvents[k].eventRoom; //строка
 			let timeslot;
 			todayEvents[k].innerBusySlot.forEach( (item, m) => { // каждый innerSlot в эвенте
@@ -96,7 +100,7 @@ export default class ScheduleDay extends Component {
 	//
 	// получим все уникальные ноды на выбранный день, сделаем массив с объектаи нода - ее иннеры
 	pasteInners( nodez ) {
-		//console.log( nodez );
+		//console.log( 'nodez', nodez );
 		
 		let nodesAndInners = [];
 		
@@ -115,7 +119,7 @@ export default class ScheduleDay extends Component {
 			}
 				nodesAndInners[id].node = nodez[i].node;
 				nodesAndInners[id].inners.push ( nodez[i].inner );
-				//console.log(i);
+				//console.log(nodez[i].inner);
 			
 			// if(nodesAndInners[id]){
 			// 	nodesAndInners[id].inners.push(nodes[ i ].inner)
@@ -137,7 +141,9 @@ export default class ScheduleDay extends Component {
 		$( '.schedule__rowslot' ).empty();
 		
 		let arr =[];
+		
 		for (let key in nodes) {
+			//console.log('нода', nodes[key].node );
 			let obj = {};
 			obj.node = nodes[key].node;
 			obj.inners = [];
@@ -149,7 +155,7 @@ export default class ScheduleDay extends Component {
 			}
 
 		}
-		console.log('arr', arr); // обычный массив нод и их иннеров
+		//console.log('массив нод и их иннеров', arr); // обычный массив нод и их иннеров
 		//сортируем иннеры
 		for (let i in arr ) {
 			//console.log( 'to sort', arr[i].inners );
@@ -266,149 +272,11 @@ export default class ScheduleDay extends Component {
 			// }
 		//}
 	};
-	// getDoomSlots() {
-	// 	let slots = document.getElementsByClassName( 'schedule__rowslot' );
-	// 	let targetSlots = [];
-	// 	for ( let i = 0; i < slots.length; i++ ) {
-	// 		if( slots[i].classList.length === 1 ) {
-	// 			targetSlots.push( slots[i] );
-	// 		}
-	// 	}
-	// 	return targetSlots;
-	// }
+
 	getEvents() {
-		let testEvent = [
-			{
-				id: "1",
-				title: "ШРИ 2018 - начало",
-				dateStart: "2017-12-13T19:05:36.981Z",
-				dateEnd: "2017-12-13T20:20:36.981Z",
-				users: [ {"id": "1"}, {"id": "2"} ],
-				room: {"id": "1"}
-			},
-			{
-				id: "3",
-				title: "Test2",
-				dateStart: "2018-01-18T19:40:36.981Z",
-				dateEnd: "2018-01-18T20:35:36.981Z",
-				users: [ {"id": "1"}, {"id": "2"} ],
-				room: {"id": "5"}
-			},
-			{
-				id: "4",
-				title: "Test2",
-				dateStart: "2018-01-18T19:00:01.981Z",
-				dateEnd: "2018-01-18T20:00:57.981Z",
-				users: [ {"id": "1"}, {"id": "2"} ],
-				room: {"id": "2"}
-			},
-			{
-				id: "5",
-				title: "Test2",
-				dateStart: "2018-01-18T11:00:01.981Z",
-				dateEnd: "2018-01-18T14:00:57.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "3"}
-			},
-			{
-				id: "6",
-				title: "Test2",
-				dateStart: "2018-01-18T11:00:01.981Z",
-				dateEnd: "2018-01-18T11:20:57.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "1"}
-			},
-			{
-				id: "7",
-				title: "Test2",
-				dateStart: "2018-01-18T11:30:01.981Z",
-				dateEnd: "2018-01-18T12:00:57.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "1"}
-			},
-			{
-				id: "8",
-				title: "Test2",
-				dateStart: "2018-01-19T11:30:01.981Z",
-				dateEnd: "2018-01-19T11:59:57.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "5"}
-			},
-			{
-				id: "11",
-				title: "Test2",
-				dateStart: "2018-01-19T12:35:01.981Z",
-				dateEnd: "2018-01-19T12:40:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "5"}
-			},
-			
-			{
-				id: "10",
-				title: "Test2",
-				dateStart: "2018-01-19T12:40:01.981Z",
-				dateEnd: "2018-01-19T12:50:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "5"}
-			},
-			{
-				id: "9",
-				title: "Test2",
-				dateStart: "2018-01-19T12:10:01.981Z",
-				dateEnd: "2018-01-19T12:30:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "5"}
-			},
-			{
-				id: "11",
-				title: "Test2",
-				dateStart: "2018-01-19T13:00:01.981Z",
-				dateEnd: "2018-01-19T14:00:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "5"}
-			},
-			{
-				id: "12",
-				title: "Test2",
-				dateStart: "2018-01-19T11:10:00.981Z",
-				dateEnd: "2018-01-19T11:30:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "3"}
-			},
-			{
-				id: "13",
-				title: "Test2",
-				dateStart: "2018-01-19T11:40:00.981Z",
-				dateEnd: "2018-01-19T11:55:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "3"}
-			},
-			{
-				id: "14",
-				title: "Test2",
-				dateStart: "2018-01-19T15:00:00.981Z",
-				dateEnd: "2018-01-19T15:20:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "3"}
-			},
-			{
-				id: "15",
-				title: "Test2",
-				dateStart: "2018-01-19T15:30:00.981Z",
-				dateEnd: "2018-01-19T16:00:00.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "3"}
-			},
-			{
-				id: "16",
-				title: "Test2",
-				dateStart: "2018-01-19T15:00:00.981Z",
-				dateEnd: "2018-01-19T16:00:01.981Z",
-				users: [ {"id": "1"}, {"id": "2"}, {"id": "4"} ],
-				room: {"id": "1"}
-			},
-			
-		];
+		console.log('загружаю события из базы getEvents() ', this.props.data.events);
+		let testEvent = this.props.data.events;
+		
 		let x = testEvent.map(( item, i ) => {
 			let startSlot = +moment ( item.dateStart ).utcOffset ( 0 ).format ( 'H' );
 			let startTime = moment ( item.dateStart ).utcOffset ( 0 );
@@ -416,7 +284,7 @@ export default class ScheduleDay extends Component {
 			let duration = Math.floor ( ( moment ( item.dateEnd ) - moment ( item.dateStart ) ) / 60000 ); // в минутах
 			let eventId = item.id
 			let count = 0;
-			
+			//console.log( 'Парсинг события:', eventId, 'startSlot!!', startSlot, 'startTime', startTime, 'endTime', endTime,'duration', duration );
 			/**
 			 * Function getEventSlots возвращает массив номеров таймслотов, которые заняты данным событием.
 			 * @param {number} startSlot слот, в котором началось событие
@@ -425,6 +293,7 @@ export default class ScheduleDay extends Component {
 			 */
 			let getEventSlots = ( startSlot, duration ) => {
 				let slots = [];
+				
 				if ( duration < 60 && startTime.format ( 'H' ) === endTime.format ( 'H' ) ) {
 					//console.log( item.id, ' короткое событие в одном часе', 'длительность', duration, startTime.format('HH:mm'), endTime.format('HH:mm') );
 					slots.push ( startSlot );
@@ -436,12 +305,21 @@ export default class ScheduleDay extends Component {
 					slots.push ( startSlot );
 				} else if ( duration >= 60 ) {
 					//console.log( item.id, 'час и больше часа', 'длительность', duration, startTime.format('HH:mm'), endTime.format('HH:mm') );
-					while ( duration > 0 ) {
+					while ( duration >= 0 ) {
 						slots.push ( startSlot + count );
-						count++;
+						//console.log( 'пуш ', startSlot + count );
+						count ++;
 						duration -= 60;
+						//console.log( 'остаток  ', duration );
 					}
+					
+					// while ( duration > 0 ) { // тут неправильно
+					// 	slots.push ( startSlot + count );
+					// 	count++;
+					// 	duration -= 60;
+					// }
 				} else {
+				
 				}
 				return slots;
 			};
@@ -455,6 +333,7 @@ export default class ScheduleDay extends Component {
 			 * @return {array} arr объект с параметрами внутреннего занятого слота в каждом таймслоте
 			 */
 			let getSlotInners = ( slots, dur, begin, end ) => {
+				console.log( 'слотсы', slots);
 				let arr = slots.map ( ( itm, i ) => {
 					/**
 					 * Function getBeginInterval возвращает номер интервала, с которого начинается внутренний слот
@@ -477,28 +356,104 @@ export default class ScheduleDay extends Component {
 					 */
 					let getIntervalWidth = ( startInterval ) => {
 						let endInterval = Math.round( end.format ( 'mm' ) / 5 );
-						if ( dur > 60 && +begin.format ( 'HH' ) < itm && +end.format ( 'HH' ) > itm ) { // слотов много, это средний слот, он полностью заполнен
+						let begHour = +begin.format ( 'HH' );
+						let endHour = +end.format ( 'HH' );
+						// itm - это слот(число)
+						// dur - длительность в минутах
+						
+						if ( dur === 60 && begHour === itm && startInterval === 1 ) {// это полный час с начала часа
 							return 12
-						} else if (dur === 60 && +begin.format ( 'HH' ) === itm && +end.format ( 'HH' ) > itm) {
-							return 12
-						} else if ( +begin.format ( 'HH' ) === itm && slots.length > 1) { // слотов много, это первый слот
-							if ( startInterval === 1 ) {
-								return 12 - startInterval + 1;
-							} else {
-								return 12 - startInterval +1;
-							}
-						} else if ( +begin.format ( 'HH' ) === itm && slots.length === 1  ) { // слот один
-							if ( startInterval === 1 ) {
-								return endInterval - startInterval +1;
-							} else {
-								return endInterval - startInterval +1;
-							}
-						} else if ( dur === 60 && +begin.format ( 'HH' ) === itm ) {
-							console.log('сработало');
+						} else if ( dur === 60 && begHour === itm && startInterval > 1 ) { // это полный час, голова
+							return 12 - startInterval + 1;
+						} else if ( dur === 60 && begHour < itm ) {// это полный час, хвост
+							return endInterval;
+						} else if ( dur < 60 && begHour === itm && startInterval === 1 ) {// это меньше часа, на один слот, с начала часа
+							return endInterval;
+						} else if ( dur < 60 && begHour === itm &&  startInterval > 1 && endHour === itm ) { //это меньше часа на один слот, не с начала часа
+							return 12 - endInterval - startInterval + 1;
+						} else if ( dur < 60 && begHour === itm && endHour > itm ) {//это меньше часа на два слота, голова
+							return 12 - startInterval - 1;
+						} else if ( dur < 60 && begHour < itm && endHour === itm ) {//это меньше часа на два слота, хвост
+							return endInterval;
+						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour === itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (голова)
 							return 12;
-						} else { // это последний слот
+						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour < itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (хвост) равно 0
+							return endInterval;
+						} else if ( dur >= 63 && begHour === itm && startInterval === 1 ) { // событие больше часа, это голова, начало с начала часа
+							return 12;
+						} else if ( dur >= 63 && begHour === itm && startInterval > 1 ) {// событие больше часа, это голова, начало с середины часа
+							return 12 - startInterval + 1;
+						} else if ( dur >= 63 && begHour < itm && endHour > itm ) {// событие больше часа, это тело
+							return 12;
+						} else {// событие больше часа, это хвост
 							return endInterval;
 						}
+						
+						// else if ( dur > 60 && endInterval === 0   ) {// это больше часа, но округление в меньшую сторону, частный случай, считается за час
+						//
+						// }
+						//
+						// 	// if ( begHour === item && startInterval === 1 ) {
+						// 	// 	return 12;
+						// 	} else { //это полный час, занимает 2 слота
+						// 		if( begHour === item && startInterval > 1 ) {// это голова
+						//
+						// 		} else {//это хвост
+						//
+						// 		}
+						// 	}
+						// } else if ( dur < 60 ) {
+						//
+						// } else if ( dur > 60 ) {
+						//
+						// } else {
+						// 	return null;
+						// }
+						//
+						//
+						// if ( begHour === itm  &&  endHour === itm) {                                        // занят один слот
+						//
+						// }
+						// 	if ( dur === 60 && begHour === itm && startInterval === 1 ) {                    // занят один слот и длительность 1 час и начало события с начала часа
+						// 		return 12
+						// 	} else if ( dur < 60 && begHour === itm && endHour === itm ) {                   // занят один слот и длительность меньше часа и событие в одном слоте
+						// 		return endInterval - startInterval + 1;
+						// 	} else if ( dur > 60 ) {
+						// 		if ( begHour === itm && startInterval === 1 ) {                               // это готова, час начала события совпадает с часом слота, событие начинается с 1 интервала
+						// 			return 12
+						// 		}
+						// 	} else if () {                          // это тело
+						// 		return 12;
+						// 	} else {                          // это хвост
+						// 		return endInterval;
+						// 	}
+						// 	} else {                                                                         // занто несколько слотов
+						//
+						// }
+						//
+						//
+						// // if ( dur > 60 && +begin.format ( 'HH' ) < itm && +end.format ( 'HH' ) > itm ) { // слотов много, это средний слот, он полностью заполнен
+						// // 	return 12
+						// // } else if (dur === 60 && +begin.format ( 'HH' ) === itm && +end.format ( 'HH' ) > itm) {
+						// // 	return 12
+						// // } else if ( +begin.format ( 'HH' ) === itm && slots.length > 1) { // слотов много, это первый слот
+						// // 	if ( startInterval === 1 ) {
+						// // 		return 12 - startInterval + 1;
+						// // 	} /*else {
+						// // 		return 12 - startInterval +1;
+						// // 	}*/
+						// // } else if ( +begin.format ( 'HH' ) === itm && slots.length === 1  ) { // слот один
+						// // 	if ( startInterval === 1 ) {
+						// // 		return endInterval - startInterval +1;
+						// // 	} else {
+						// // 		return endInterval - startInterval +1;
+						// // 	}
+						// // } else if ( dur === 60 && +begin.format ( 'HH' ) === itm ) {
+						// // 	console.log('сработало');
+						// // 	return 12;
+						// // } else { // это последний слот
+						// // 	return endInterval;
+						// }
 					};
 					
 					let getCss = () => {
@@ -561,15 +516,17 @@ export default class ScheduleDay extends Component {
 			})
 			
 		});
-		console.log( 'x', x );
+		//console.log( 'x', x );
 		
 		return x;
 	};
 	
 	getTodayEvents( events ) {
-		//console.log( 'получаем события на ', this.props.dayToDisplay);
+		//console.log( 'получаем события на ', this.props.dayToDisplay.format('DD-MM-YYYY') );
+		//console.log(events);
 		let todayEvents = [];
 		events.forEach( ( item, i ) => {
+			//console.log( 'начало события', item.eventStart.format('DD-MM-YYYY'), 'конец события', item.eventEnd.format('DD-MM-YYYY') );
 			if ( item.eventStart.isSame( this.props.dayToDisplay, 'day' ) ) {
 				todayEvents.push( item );
 			}
@@ -610,3 +567,17 @@ export default class ScheduleDay extends Component {
 }
 
 
+export default graphql(gql`query {
+  events {
+    id
+    title
+    dateStart
+    dateEnd
+    users {
+      id
+    }
+    room {
+      id
+    }
+  }
+}`, {})(ScheduleDay);
