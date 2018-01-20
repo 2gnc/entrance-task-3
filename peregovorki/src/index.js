@@ -13,7 +13,8 @@ import Eventeditor from './components/eventeditor/Eventeditor';
 
 const client = new ApolloClient({
 	link: new HttpLink({ uri: 'http://localhost:3001/graphql' }),
-	cache: new InMemoryCache()
+	cache: new InMemoryCache(),
+
 });
 
 
