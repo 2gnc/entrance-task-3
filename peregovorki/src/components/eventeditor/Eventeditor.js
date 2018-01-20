@@ -32,17 +32,23 @@ class Eventeditor extends Component {
 			userlist: null,
 			loading: false,
 			selectedRoom: '',
+			eventDate: moment(),
 		};
 		
 		this.timer = null;
-		this.fakeRequest = this.fakeRequest.bind(this);
-		this.matchStateToTerm = this.matchStateToTerm.bind(this);
-		this.selectedRoomUpd = this.selectedRoomUpd.bind(this);
+		this.fakeRequest = this.fakeRequest.bind( this );
+		this.matchStateToTerm = this.matchStateToTerm.bind( this );
+		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
+		this.handleDateChange = this.handleDateChange.bind( this );
 	}
-
-	fakeRequest(value, cb) {
+	handleDateChange( date ) {
+		this.setState({
+			eventDate: date,
+		});
+	}
+	fakeRequest( value, cb ) {
 		return setTimeout(cb, 500, value ?
-			this.state.userlist.filter(state => this.matchStateToTerm(state, value)) :
+			this.state.userlist.filter( state => this.matchStateToTerm(state, value) ) :
 			this.props.data.users
 		);
 	}
@@ -60,12 +66,21 @@ class Eventeditor extends Component {
 	}
 	render () {
 		console.log(this.props);
+		
 		if(!this.props.data.users) {
 			return null;
 		}
+		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
 		}
+		
+		let dateForInput = () => {
+			if (this.props.routeParams.eventid === 'new') {
+				return this.state.eventDate;
+			}
+		};
+		
 		let hasButton = false;
 		let eventmode = this.props.routeParams.eventid;
 		let heading;
@@ -98,9 +113,16 @@ class Eventeditor extends Component {
 									<div className='date-time-inpt__date'>
 										<label className='label label--desktop' htmlFor='eventDate'>Дата</label>
 										<label className='label label--touch' htmlFor='eventDate'>Дата и время</label>
-										<input className='inpt date-time-inpt__date-inpt'
+										<DatePicker
+											selected = { dateForInput() }
+											onChange = {this.handleDateChange}
+											dateFormat="DD MMMM, YYYY"
+											id="eventDate"
+											className="inpt date-time-inpt__date-inpt"
+										/>
+										{/*<input className='inpt date-time-inpt__date-inpt'
 											   type='text'
-											   id='eventDate'/>
+											   id='eventDate'/>*/}
 									</div>
 									<div className='date-time-inpt__times'>
 										<div className='date-time-inpt__time'>
