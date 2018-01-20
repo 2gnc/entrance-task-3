@@ -61,7 +61,8 @@ class ScheduleDay extends Component {
 			let allusers = this.props.data.users; // все пользователи
 			let eventStartDate =  todayEvents[i].eventStart.format('D MMMM');
 			let eventStartTime = todayEvents[i].eventStart.utc().format('HH:mm');
-			let eventEndTime =todayEvents[i].eventEnd.utc().format('HH:mm');;
+			let eventEndTime =todayEvents[i].eventEnd.utc().format('HH:mm');
+			let eventId = todayEvents[i].eventId;
 			let eventTitle = todayEvents[i].eventTitle; // название события
 			let firstUser = todayEvents[i].eventUsers[0]; // первый пользователь для отображения (ID)
 			let numberOfUsers = todayEvents[i].eventUsers.length; // количество пользователей
@@ -134,7 +135,9 @@ class ScheduleDay extends Component {
 					$(e.target).append(
 						'<div class="tooltip__triangle"></div>'+
 						'<div class="tooltip">'+
-							'<div class="icon icon--edit tooltip__icon"></div>'+
+							'<div class="icon icon--edit tooltip__icon" >' +
+								'<a href="/event/'+ eventId +'" style="display: block; width: 100%; height: 100%"></a>' +
+							'</div>'+
 							'<div class="tooltip__heading">' + eventTitle + '</div>'+
 							'<div class="tooltip__info">'+
 								'<span class="tooltip__info-when">' + eventStartDate + ',' + eventStartTime + ' - ' + eventEndTime + '</span>'+
