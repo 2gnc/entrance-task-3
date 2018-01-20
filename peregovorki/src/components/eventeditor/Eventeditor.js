@@ -8,8 +8,6 @@ import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
 import EventFooter from '../eventFooter/EventFooter';
 
-import {Link} from 'react-router';
-
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import 'moment/locale/ru';
@@ -119,10 +117,8 @@ class Eventeditor extends Component {
 											dateFormat="DD MMMM, YYYY"
 											id="eventDate"
 											className="inpt date-time-inpt__date-inpt"
+											readOnly={true}
 										/>
-										{/*<input className='inpt date-time-inpt__date-inpt'
-											   type='text'
-											   id='eventDate'/>*/}
 									</div>
 									<div className='date-time-inpt__times'>
 										<div className='date-time-inpt__time'>
