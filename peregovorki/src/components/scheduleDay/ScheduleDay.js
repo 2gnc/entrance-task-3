@@ -38,12 +38,22 @@ class ScheduleDay extends Component {
 		let empty = 	$('.schedule__innerslot--empty');
 		
 		for (let i = 0; i < empty.length; i++ ) {
-			//console.log( $(empty[i]).parent() );
+			let date = this.props.dayToDisplay.format('DDMMYY');
+			let room = $(empty[i]).parent().attr( 'data-room' );
+			let time = () => {
+				if ( $ ( empty[ i ] ).hasClass ( 'schedule__innerslot--emptyw12' ) ) {
+					return $ ( empty[ i ] ).parent().attr ( 'data-time' );
+				} else {
+					return ''
+				}
+			};
+			$(empty[i]).append(
+				//'<a href="/"><div class="btn btn--newevent">+</div></a>'
+				'<a href="/make/' + date + '-' + room + '-' + time() + '"><div class="btn btn--newevent">+</div></a>' //TODO тут получать ID комнаты, время начала и время окончания
+			);
 		}
 		
-		empty.append(
-			'<a href="/"><div class="btn btn--newevent">+</div></a>' //TODO тут получать ID комнаты, время начала и время окончания
-		);
+		
 	};
 	addEvents(todayEvents) {
 		for ( let i = 0; i < todayEvents.length; i++ ) {

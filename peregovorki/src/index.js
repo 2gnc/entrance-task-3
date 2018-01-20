@@ -26,6 +26,8 @@ ReactDOM.render(
 				<Route path='event' component={Eventeditor} >
 					<Route path=':eventId' component={Eventeditor} />
 				</Route>
+				<Route path='make' component={Eventeditor} />
+				<Route path='make/:data' component={Eventeditor} />
 			</Route>
 		</Router>
 	</ApolloProvider>,
