@@ -48,6 +48,7 @@ export default class Datepick extends Component {
         id="datetoday"
         className="timing__input"
         monthsShown={3}
+        readOnly={true}
     />;
   }
 }
