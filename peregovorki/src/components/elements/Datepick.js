@@ -47,6 +47,7 @@ export default class Datepick extends Component {
         dateFormat="DD MMM"
         id="datetoday"
         className="timing__input"
+        monthsShown={3}
     />;
   }
 }
