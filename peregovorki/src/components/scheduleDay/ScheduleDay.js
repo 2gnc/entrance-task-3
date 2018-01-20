@@ -35,9 +35,14 @@ class ScheduleDay extends Component {
 		this.addButtons();
 	}
 	addButtons() {
-		//console.log( $('.schedule__innerslot--empty') );
-		$('.schedule__innerslot--empty').append(
-			'<div class="btn btn--newevent">+</div>'
+		let empty = 	$('.schedule__innerslot--empty');
+		
+		for (let i = 0; i < empty.length; i++ ) {
+			//console.log( $(empty[i]).parent() );
+		}
+		
+		empty.append(
+			'<a href="/"><div class="btn btn--newevent">+</div></a>' //TODO тут получать ID комнаты, время начала и время окончания
 		);
 	};
 	addEvents(todayEvents) {
