@@ -9,13 +9,14 @@ import gql from 'graphql-tag';
 class ScheduleDay extends Component {
 	constructor( props ) {
 		super( props );
-		this.getTodayEvents = this.getTodayEvents.bind(this);
-		this.getEvents = this.getEvents.bind(this);
-		this.getNodes = this.getNodes.bind(this);
-		this.pasteInners = this.pasteInners.bind(this);
-		this.makeDooms = this.makeDooms.bind(this);
-		this.fillByEmpty = this.fillByEmpty.bind(this);
-		this.addEvents = this.addEvents.bind(this);
+		this.getTodayEvents = this.getTodayEvents.bind( this );
+		this.getEvents = this.getEvents.bind( this );
+		this.getNodes = this.getNodes.bind( this );
+		this.pasteInners = this.pasteInners.bind( this );
+		this.makeDooms = this.makeDooms.bind( this );
+		this.fillByEmpty = this.fillByEmpty.bind( this );
+		this.addEvents = this.addEvents.bind( this );
+		this.addButtons = this.addButtons.bind( this );
 	}
 	
 	componentDidMount() {
@@ -31,7 +32,14 @@ class ScheduleDay extends Component {
 		this.makeDooms(nodesAndInners);
 		this.fillByEmpty();
 		this.addEvents( todayEvents );
+		this.addButtons();
 	}
+	addButtons() {
+		//console.log( $('.schedule__innerslot--empty') );
+		$('.schedule__innerslot--empty').append(
+			'<div class="btn btn--newevent">+</div>'
+		);
+	};
 	addEvents(todayEvents) {
 		for ( let i = 0; i < todayEvents.length; i++ ) {
 			let width = todayEvents[i].eventDuration / 5;
@@ -78,7 +86,11 @@ class ScheduleDay extends Component {
 			
 			for ( let k = 0; k < todayEvents[i].innerBusySlot.length; k++ ) {
 				let stl = todayEvents[i].innerBusySlot[k].timeslot;
-				slotsToListen.push( $('div.schedule__rowslot[data-room='+room+'][data-time='+stl+']') );
+				if (todayEvents[i].innerBusySlot[k].width > 0) {
+					slotsToListen.push(
+						$('div.schedule__rowslot[data-room='+room+'][data-time='+stl+']')
+					);
+				}
 			};
 			
 			$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).on('klaz', (e)=>{
@@ -92,6 +104,7 @@ class ScheduleDay extends Component {
 			});
 			
 			for ( let i = 0; i < slotsToListen.length; i++ ){
+				
 				slotsToListen[i].hover(
 					()=>{$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).trigger('klaz')},
 					()=>{$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).trigger('noklaz');}
@@ -217,10 +230,10 @@ class ScheduleDay extends Component {
 						if( inners[0].width > 0 ) {
 							node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].eventId + '"></div>' );
 						}
-						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + emptywidth +'"></div>' );
+						node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + emptywidth +'"></div>' );
 					} else if ( inners[0].beginInterval !== 1 &&  inners[0].width < 12 ) {
 						let emptywidth = 12 - inners[0].width;
-						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + emptywidth +'"></div>' );
+						node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + emptywidth +'"></div>' );
 						if( inners[0].width > 0 ) {
 							node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].eventId + '"></div>' );
 						}
@@ -236,21 +249,21 @@ class ScheduleDay extends Component {
 						// первый полный, он всегда конечный
 						node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].eventId + '"></div>' );
 						// первый пустой
-						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + e1w +'"></div>' );
+						node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + e1w +'"></div>' );
 						// второй полный, он всегда конечный
 						node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[1].width + 'r" data-event="' + inners[1].eventId + '"></div>' );
 						// второй пустой
-						if (e2w) {node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + e2w +'"></div>' );}
+						if (e2w) {node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + e2w +'"></div>' );}
 					} else { // если сначала пусто
 						e1w = inners[0].beginInterval - 1;
 						e2w = inners[1].beginInterval - inners[0].width - e1w - 1;
 						e3w = 12 - inners[1].width - e2w - inners[0].width - e1w;
 						// первый пустой
-						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + e1w +'"></div>' );
+						node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + e1w +'"></div>' );
 						// первый полный
 						node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[0].width + 'r" data-event="' + inners[0].eventId + '"></div>' );
 						// второй пустой
-						node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + e2w +'"></div>' );
+						node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + e2w +'"></div>' );
 						// второй полный (он конечный, если e3w === 0 и не конечный, если есть третий пустой интервал)
 						if (e3w > 0) {
 							if ( inners[1].ifEnding ) {
@@ -261,7 +274,7 @@ class ScheduleDay extends Component {
 								node.append( '<div class="schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + inners[1].width + '" data-event="' + inners[1].eventId + '"></div>' );
 							}
 							// третий пустой
-							node.append( '<div class="schedule__innerslot schedule__innerslot--emptyw' + e3w +'"></div>' );
+							node.append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw' + e3w +'"></div>' );
 						} else {
 							if ( inners[1].ifEnding ) {
 								// второй полный конечный
@@ -281,7 +294,7 @@ class ScheduleDay extends Component {
 		let allrows = $('.schedule__rowslot');
 		for ( let i = 0; i < allrows.length; i++ ) {
 			if ( !allrows[i].classList.contains( 'schedule__rowslot--floor' ) && allrows[i].childNodes.length === 0 ) {
-				$(allrows[i]).append( '<div class="schedule__innerslot schedule__innerslot--emptyw12"></div>' );
+				$(allrows[i]).append( '<div class="schedule__innerslot schedule__innerslot--empty schedule__innerslot--emptyw12"></div>' );
 			}
 		}
 	};
