@@ -39,8 +39,27 @@ class ScheduleDay extends Component {
 			let room = todayEvents[i].eventRoom;
 			let targetslot = $('div.schedule__rowslot[data-room='+room+'][data-time='+slot+']');
 			
-			//console.log('ss', slot, room, targetslot, width );
-			//console.log( targetslot.children( '.schedule__innerslot--busy' ) );
+			let slotsToListen =[];
+			
+			for ( let k = 0; k < todayEvents[i].innerBusySlot.length; k++ ) {
+				let stl = todayEvents[i].innerBusySlot[k].timeslot;
+				slotsToListen.push( $('div.schedule__rowslot[data-room='+room+'][data-time='+stl+']') );
+			};
+			
+			$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).on('klaz', (e)=>{
+				$(e.target).children().css( 'visibility', 'visible' );
+			});
+			$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).on('noklaz', (e)=>{
+				$(e.target).children().css( 'visibility', 'hidden' );
+			});
+			
+			for ( let i = 0; i < slotsToListen.length; i++ ){
+				slotsToListen[i].hover(
+					()=>{$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).trigger('klaz')},
+					()=>{$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).trigger('noklaz');}
+					);
+				}
+
 			targetslot.children( '.schedule__innerslot--busy' ).empty();
 			targetslot.children( '.schedule__innerslot--busy' ).append(
 				'<div class="schedule__event schedule__event--w' + width + '" ></div>'
@@ -381,7 +400,8 @@ class ScheduleDay extends Component {
 	render() {
 	let isToday = this.props.dayToDisplay.isSame( moment(), 'day' );
 	let rooms = this.props.rooms;
-		
+	
+	
 		function makeSlots() {
 			let now = +moment().format('HH');
 			let arr = [];
