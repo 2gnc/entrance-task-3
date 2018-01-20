@@ -62,6 +62,18 @@ class ScheduleDay extends Component {
 				}
 			};
 			
+			let getRightWord = ( num ) => {
+				if ( num === 1 ) {
+					return 'участник';
+				}
+				else if ( [ 2, 3, 4 ].indexOf ( num ) !== 1 ) {
+					return 'участника';
+				}
+				else {
+					return 'участников';
+				}
+			};
+			
 			let slotsToListen =[];
 			
 			for ( let k = 0; k < todayEvents[i].innerBusySlot.length; k++ ) {
@@ -93,8 +105,6 @@ class ScheduleDay extends Component {
 			
 			targetslot.children( '.schedule__innerslot--busy' ).on( 'click', (e) => {
 				
-				console.log( $(e.target).children().length );
-				
 				$(e.target).toggleClass('visible');
 				if ( $(e.target).children().length === 0 ) {
 					$(e.target).append(
@@ -112,7 +122,7 @@ class ScheduleDay extends Component {
 									'<img class="user__pic" src="' + firstUserAv() + '"/>' +
 									'<div class="user__name">' + firstUserName() + '</div>'+
 								'</div>'+
-								'<div class="tooltip__other-users">и 12 участников</div>'+
+								'<div class="tooltip__other-users">и ' +numberOfUsers + ' ' + getRightWord(numberOfUsers) + '</div>'+
 							'</div>'+
 						'</div>'
 					)
