@@ -36,8 +36,31 @@ class ScheduleDay extends Component {
 		for ( let i = 0; i < todayEvents.length; i++ ) {
 			let width = todayEvents[i].eventDuration / 5;
 			let slot = todayEvents[i].innerBusySlot[0].timeslot;
+			let allRooms = this.props.data.rooms;
 			let room = todayEvents[i].eventRoom;
 			let targetslot = $('div.schedule__rowslot[data-room='+room+'][data-time='+slot+']');
+			let allusers = this.props.data.users; // все пользователи
+			let eventStartDate =  todayEvents[i].eventStart.format('D MMMM');
+			let eventStartTime = todayEvents[i].eventStart.utc().format('HH:mm');
+			let eventEndTime =todayEvents[i].eventEnd.utc().format('HH:mm');;
+			let eventTitle = todayEvents[i].eventTitle; // название события
+			let firstUser = todayEvents[i].eventUsers[0]; // первый пользователь для отображения (ID)
+			let numberOfUsers = todayEvents[i].eventUsers.length; // количество пользователей
+			let firstUserName = () => {
+				for (let i = 0; i < allusers.length; i++ ) {
+					if ( allusers[i].id === firstUser ) { return allusers[i].login; }
+				}
+			};
+			let firstUserAv = () => {
+				for (let i = 0; i < allusers.length; i++ ) {
+					if ( allusers[i].id === firstUser ) { return allusers[i].avatarUrl; }
+				}
+			};
+			let roomName = ()=> {
+				for (let i = 0; i < allRooms.length; i++ ) {
+					if ( allRooms[i].id === room ) { return allRooms[i].title; }
+				}
+			};
 			
 			let slotsToListen =[];
 			
@@ -50,7 +73,10 @@ class ScheduleDay extends Component {
 				$(e.target).children().css( 'visibility', 'visible' );
 			});
 			$(slotsToListen[0].children( '.schedule__innerslot--busy' )[0]).on('noklaz', (e)=>{
-				$(e.target).children().css( 'visibility', 'hidden' );
+				if ( !$(e.target).children().hasClass( 'visible' ) ) {
+					$(e.target).children().css( 'visibility', 'hidden' );
+				}
+				
 			});
 			
 			for ( let i = 0; i < slotsToListen.length; i++ ){
@@ -64,6 +90,45 @@ class ScheduleDay extends Component {
 			targetslot.children( '.schedule__innerslot--busy' ).append(
 				'<div class="schedule__event schedule__event--w' + width + '" ></div>'
 			);
+			
+			targetslot.children( '.schedule__innerslot--busy' ).on( 'click', (e) => {
+				
+				console.log( $(e.target).children().length );
+				
+				$(e.target).toggleClass('visible');
+				if ( $(e.target).children().length === 0 ) {
+					$(e.target).append(
+						'<div class="tooltip__triangle"></div>'+
+						'<div class="tooltip">'+
+							'<div class="icon icon--edit tooltip__icon"></div>'+
+							'<div class="tooltip__heading">' + eventTitle + '</div>'+
+							'<div class="tooltip__info">'+
+								'<span class="tooltip__info-when">' + eventStartDate + ',' + eventStartTime + '-' + eventEndTime + '</span>'+
+								'<span class="tooltip__info-where">·</span>'+
+								'<span class="tooltip__info-where">' + roomName() + '</span>'+
+							'</div>'+
+							'<div class="tooltip__users">'+
+								'<div class="user">'+
+									'<img class="user__pic" src="' + firstUserAv() + '"/>' +
+									'<div class="user__name">' + firstUserName() + '</div>'+
+								'</div>'+
+								'<div class="tooltip__other-users">и 12 участников</div>'+
+							'</div>'+
+						'</div>'
+					)
+				}
+				
+				document.addEventListener( 'click', (ev) => {
+					if( $('.tooltip') && ev.target !== e.target ) {
+						let x = targetslot.children('.schedule__innerslot--busy').children( '.schedule__event');
+		
+						x.removeClass('visible');
+						x.empty();
+						x.css( 'visibility', 'hidden' );
+					}
+				});
+				
+			});
 		}
 	}
 	getNodes( todayEvents ) {
@@ -430,16 +495,8 @@ class ScheduleDay extends Component {
 }
 
 export default graphql(gql`query {
-  events {
-    id
-    title
-    dateStart
-    dateEnd
-    users {
-      id
-    }
-    room {
-      id
-    }
-  }
+  events { id title dateStart dateEnd users { id } room { id } }
+  users {id login homeFloor avatarUrl }
+	rooms {id title capacity floor }
+  
 }`, {})(ScheduleDay);
