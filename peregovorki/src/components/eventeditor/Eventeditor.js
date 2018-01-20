@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Header from '../header/Header'
 import IconClose from '../elements/IconClose';
 import Autocomplete from 'react-autocomplete';
-import { graphql } from 'react-apollo';
+import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
@@ -38,6 +38,20 @@ class Eventeditor extends Component {
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
 		this.handleDateChange = this.handleDateChange.bind( this );
+		this.eventDelete = this.eventDelete.bind( this );
+	}
+	eventDelete(){
+		this.props.mutate({
+				mutation: 'deleteEvent',
+				variables: {
+					id: 80
+				}
+			})
+			.then(({ data }) => {
+				console.log('got data', data);
+			}).catch((error) => {
+			console.log('there was an error sending the query', error);
+		});
 	}
 	handleDateChange( date ) {
 		this.setState({
@@ -64,6 +78,7 @@ class Eventeditor extends Component {
 	}
 	render () {
 		console.log(this.props);
+		console.log(this.state);
 		
 		if(!this.props.data.users) {
 			return null;
@@ -140,6 +155,7 @@ class Eventeditor extends Component {
 								</div>
 							</div>
 							<div className='event__separator'></div>
+							<a href="#" onClick={this.eventDelete} >test</a>
 						</div>
 						<div className='event__row'>
 							<div className='event__col'>
@@ -225,4 +241,24 @@ class Eventeditor extends Component {
 		})
 	}
 }
-export default graphql(gql`query {users {id login homeFloor avatarUrl }}`, {})(Eventeditor);
+
+export default compose(
+	graphql(gql`query {users {id login homeFloor avatarUrl }}`, {}),
+	graphql(gql` mutation deleteEvent ( $id: ID!) { removeEvent (id: $id) { id } }`, {}),
+	graphql(gql`
+		mutation craeteEvent ($input: EventInput!, $users: [ID], $room: ID!) {
+			createEvent( input: $input, User:$users, Room:$room ) {
+				title
+				dateStart
+				dateEnd
+				users {
+					id
+				}
+				room {
+					id
+				}
+			}
+		}
+	`, {})
+
+)(Eventeditor);
