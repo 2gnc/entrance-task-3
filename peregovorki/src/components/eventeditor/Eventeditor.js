@@ -8,6 +8,21 @@ import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
 import EventFooter from '../eventFooter/EventFooter';
 
+import {Link} from 'react-router';
+
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
+import 'moment/locale/ru';
+import 'react-datepicker/dist/react-datepicker.css';
+
+moment.locale('ru');
+moment.updateLocale('ru', {
+	monthsShort : [
+		"Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+		"Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"
+	]
+});
+
 class Eventeditor extends Component {
 	constructor(props) {
 		super (props);
@@ -67,7 +82,7 @@ class Eventeditor extends Component {
 					<div className='event__wrapper'>
 						<div className='event__heading'>
 							<div className='caption'>{heading}</div>
-							<IconClose/>
+							<a href="/"><IconClose/></a>
 						</div>
 						<div className='event__row'>
 							<div className='event__col'>
