@@ -14,7 +14,7 @@ export default class Now extends Component {
 		
 		let time = getClass();
 		
-		function getModifier() {
+		function getModifier() { //TODO рассчитывать высоту динамически
 			if(time === '05') {
 				return "now--right1"
 			} else if (time === '10') {

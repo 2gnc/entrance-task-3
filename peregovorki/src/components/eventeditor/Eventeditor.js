@@ -37,6 +37,8 @@ class Eventeditor extends Component {
 		};
 		
 		this.timer = null;
+		this.errors = '';
+		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
@@ -48,7 +50,8 @@ class Eventeditor extends Component {
 		this.saveEvent = this.saveEvent.bind( this );
 		this.validation = this.validation.bind( this );
 	}
-	validation() {
+	
+	validation() { //TODO добавить уловия проверки для редактирования события
 		let errors = [];
 		let theme = $( '#eventTheme' );
 		let users = $( '#eventUsersInpt' );
@@ -77,19 +80,21 @@ class Eventeditor extends Component {
 			setTimeout( ()=> { date.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала
-			errors.push( 'проверьте время' );
+			errors.push( 'неверно указано время' );
 			startInpt.toggleClass( 'inpt--error' );
 			setTimeout( ()=> { startInpt.toggleClass( 'inpt--error' ) }, 800 );
 			endInpt.toggleClass( 'inpt--error' );
 			setTimeout( ()=> { endInpt.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( !this.state.selectedRoom ) { // переговорка выбрана
-			errors.push( 'выберите переговорку' );
+			errors.push( 'не выбрана переговорка' );
 		}
 		
 		console.log(errors);
+		
 		//возвращаем результат проверки
 		if ( errors.length > 0 ) {
+			this.errors = errors;
 			return errors;
 		} else {
 			return true;
@@ -98,6 +103,11 @@ class Eventeditor extends Component {
 	saveEvent() { // TODO будет использоваться как для новых событий так и при редактировании
 		if ( this.props.routeParams.eventid === 'new' ) { // если сохраняем новое событие
 			this.validation();
+			if( this.errors.length > 0 ) {
+				this.setState({
+					showModal: 'error',
+				});
+			}
 		} else {
 			return null;
 		}
@@ -183,7 +193,7 @@ class Eventeditor extends Component {
 		
 		let showModal = () => {
 			if( this.state.showModal === 'error' ) {
-				return ( <Modal message="Ошибка" type="error" />);
+				return ( <Modal message = {this.errors} type = "error" />);
 			}
 		};
 		
