@@ -39,18 +39,42 @@ class Eventeditor extends Component {
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
 		this.handleDateChange = this.handleDateChange.bind( this );
 		this.eventDelete = this.eventDelete.bind( this );
+		this.eventCreate = this.eventCreate.bind( this );
 	}
-	eventDelete(){
+	eventCreate() {
 		this.props.mutate({
-				mutation: 'deleteEvent',
+				mutation: 'craeteEvent',
 				variables: {
-					id: 80
+					input: {
+						title: "cc",
+						dateStart: "2018-12-11T21:30:00.981Z",
+						dateEnd: "2018-12-11T21:30:00.981Z"
+					},
+					users: [
+						"1",
+						"3"
+					],
+					room: 1,
 				}
 			})
 			.then(({ data }) => {
-				console.log('got data', data);
+				console.log('got data create', data);
 			}).catch((error) => {
-			console.log('there was an error sending the query', error);
+			console.log('there was an error sending the query create', error);
+		});
+	}
+
+	eventDelete(){
+		this.props.mutate({
+				mutation: 'removeEvent',
+				variables: {
+					id: 81
+				}
+			})
+			.then(({ data }) => {
+				console.log('got data delete', data);
+			}).catch((error) => {
+			console.log('there was an error sending the query delete', error);
 		});
 	}
 	handleDateChange( date ) {
@@ -155,7 +179,6 @@ class Eventeditor extends Component {
 								</div>
 							</div>
 							<div className='event__separator'></div>
-							<a href="#" onClick={this.eventDelete} >test</a>
 						</div>
 						<div className='event__row'>
 							<div className='event__col'>
@@ -244,7 +267,7 @@ class Eventeditor extends Component {
 
 export default compose(
 	graphql(gql`query {users {id login homeFloor avatarUrl }}`, {}),
-	graphql(gql` mutation deleteEvent ( $id: ID!) { removeEvent (id: $id) { id } }`, {}),
+	graphql(gql` mutation removeEvent ( $id: ID!) { removeEvent (id: $id) { id } }`, {}),
 	graphql(gql`
 		mutation craeteEvent ($input: EventInput!, $users: [ID], $room: ID!) {
 			createEvent( input: $input, User:$users, Room:$room ) {
