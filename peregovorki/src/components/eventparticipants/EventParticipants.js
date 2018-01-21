@@ -16,11 +16,12 @@ export default class EventParticipants extends Component {
 			let name = papa.find('.user__name').text();
 			let x;
 			this.state.users.map((item, i)=> {
-				if(item.login === name) { x = i } return null
+				if(item.login === name) { x = i } return null;
 			});
 			this.state.users.splice( x, [1]);
+			this.props.parent.handleRemoveUser( name );
 			this.forceUpdate();
-		} )
+		});
 	}
 	
 	render() {
