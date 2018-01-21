@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Header from '../header/Header'
+import Header from '../header/Header';
 import IconClose from '../elements/IconClose';
 import Autocomplete from 'react-autocomplete';
 import { graphql, compose } from 'react-apollo';
@@ -7,6 +7,7 @@ import gql from 'graphql-tag';
 import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
 import EventFooter from '../eventFooter/EventFooter';
+import Modal from '../modal/Modal';
 
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
@@ -31,6 +32,7 @@ class Eventeditor extends Component {
 			loading: false,
 			selectedRoom: '',
 			eventDate: moment(),
+			showModal: '',
 		};
 		
 		this.timer = null;
@@ -40,8 +42,10 @@ class Eventeditor extends Component {
 		this.handleDateChange = this.handleDateChange.bind( this );
 		this.eventDelete = this.eventDelete.bind( this );
 		this.eventCreate = this.eventCreate.bind( this );
+		this.handleAddUser = this.handleAddUser.bind( this );
+		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 	}
-	eventCreate() {
+	eventCreate() { //TODO заменить заглушки на переменные
 		this.props.mutate({
 				mutation: 'craeteEvent',
 				variables: {
@@ -64,7 +68,7 @@ class Eventeditor extends Component {
 		});
 	}
 
-	eventDelete(){
+	eventDelete(){ //TODO заменить заглушки на переменные
 		this.props.mutate({
 				mutation: 'removeEvent',
 				variables: {
@@ -76,6 +80,14 @@ class Eventeditor extends Component {
 			}).catch((error) => {
 			console.log('there was an error sending the query delete', error);
 		});
+	}
+	handleAddUser( user ) { //TODO если это режим редактирования события - вызывать мутацию addUserToEvent
+		if ( user ) {
+			this.state.selectedUsers.push(user);
+		}
+	}
+	handleRemoveUser( user ) { //TODO если это режим редактирования события - вызывать мутацию removeUserFromEvent
+
 	}
 	handleDateChange( date ) {
 		this.setState({
@@ -111,6 +123,12 @@ class Eventeditor extends Component {
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
 		}
+		
+		let showModal = () => {
+			if( this.state.showModal === 'error' ) {
+				return ( <Modal message="Ошибка" type="error" />);
+			}
+		};
 		
 		let dateForInput = () => {
 			if (this.props.routeParams.eventid === 'new') {
@@ -229,14 +247,17 @@ class Eventeditor extends Component {
 										this.state.userlist.forEach((item) => {
 											if (item.login === usrname ) {target=item}
 										});
-										if( this.state.selectedUsers.indexOf(target) === -1 ) {this.state.selectedUsers.push(target)}
+										//if( this.state.selectedUsers.indexOf(target) === -1 ) {this.state.selectedUsers.push(target)}
+										if ( this.state.selectedUsers.indexOf( target ) === -1 ) {
+											this.handleAddUser( target );
+										}
 										this.forceUpdate();
 									}}
 								/>
-								<EventParticipants users={this.state} />
+								<EventParticipants users = {this.state} parent = {this} />
 							</div>
 							<div className='event__separator'></div>
-							<EventRecomendations parent={this} selectedRoom={this.state.selectedRoom} />
+							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} />
 						</div>
 					</div>
 					<div className='event__new-event-controls'>
@@ -248,10 +269,11 @@ class Eventeditor extends Component {
 					</div>
 					<EventFooter mode={eventmode} />
 				</form>
+				{showModal()}
 			</div>
-			
 		)
 	}
+
 	renderItems(items) {
 		return items.map((item, index) => {
 			const text = item.props.children;
