@@ -78,8 +78,7 @@ class Eventeditor extends Component {
 		let endInpt = $( '#timeEnd' );
 		let endTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + endInpt.val();
 		
-		console.log(startTime, endTime);
-		console.log( moment(startTime).isBefore( endTime, 'hour' ) );
+		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
 		
 		if ( theme.val() < 3 ) {// тема сообщения указана
 			errors.push( 'непонятная тема' );
@@ -93,31 +92,63 @@ class Eventeditor extends Component {
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
-		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала
-			errors.push( 'неверно указано время' );
+		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
+			errors.push( 'неверно указано время' ); //TODO проверять дилтельнось события не короче 5 минут
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
 		if ( !this.state.selectedRoom ) { // переговорка выбрана
+			console.log( "ERROR", this.state.selectedRoom );
 			errors.push( 'не выбрана переговорка' );
 		}
-		
-		console.log(errors);
 		
 		//возвращаем результат проверки
 		if ( errors.length > 0 ) {
 			this.errors = errors;
 			return errors;
 		} else {
-			return true;
+			return (
+				{
+					eventTheme: theme.val(),
+					eventParticipants: this.state.selectedUsers.map( (item, i) => {
+						return item.id;
+					}),
+					eventRoom: this.state.selectedRoom,
+					eventStart: moment( startTime ).utc('981Z'),
+					eventEnd: moment( endTime ).utc('981Z'),
+				}
+			);
 		}
 	}
 	saveEvent() { // TODO будет использоваться как для новых событий так и при редактировании
 		if ( this.props.routeParams.eventid === 'new' ) { // если сохраняем новое событие
-			this.validation();
-			if( this.errors.length > 0 ) {
+			
+			let parameters = this.validation();
+			
+			console.log( '!!!!!',  parameters );
+			if( this.errors.length > 0 ) { // если ошибка валидации - показываем модальное окно с ошибкой
 				this.setState({
 					showModal: 'error',
+				});
+			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок наъдится в recomendations, а занятость участников не проверяется)
+				console.log();
+				
+				this.props.mutate({
+						mutation: 'craeteEvent',
+						variables: {
+							input: {
+								title: parameters.eventTheme,
+								dateStart: parameters.eventStart,
+								dateEnd: parameters.eventEnd,
+							},
+							users: parameters.eventParticipants,
+							room: parameters.eventRoom,
+						}
+					})
+					.then(({ data }) => {
+						console.log('got data create', data);
+					}).catch((error) => {
+					console.log('there was an error sending the query create', error);
 				});
 			}
 		} else {

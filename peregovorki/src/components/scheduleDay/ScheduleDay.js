@@ -140,7 +140,7 @@ class ScheduleDay extends Component {
 							'</div>'+
 							'<div class="tooltip__heading">' + eventTitle + '</div>'+
 							'<div class="tooltip__info">'+
-								'<span class="tooltip__info-when">' + eventStartDate + ',' + eventStartTime + ' - ' + eventEndTime + '</span>'+
+								'<span class="tooltip__info-when">' + eventStartDate + ', ' + eventStartTime + ' - ' + eventEndTime + '</span>'+
 								'<span class="tooltip__info-where">·</span>'+
 								'<span class="tooltip__info-where">' + roomName() + '</span>'+
 							'</div>'+
