@@ -83,25 +83,20 @@ class Eventeditor extends Component {
 		
 		if ( theme.val() < 3 ) {// тема сообщения указана
 			errors.push( 'непонятная тема' );
-			theme.toggleClass( 'inpt--error' );
-			//setTimeout( ()=> { theme.toggleClass( 'inpt--error' ) }, 800 );
+			if( !theme.hasClass('inpt--error') ) {theme.addClass( 'inpt--error' );}
 		}
 		if ( this.state.selectedUsers.length < 1 ) { // выбран хотя бы 1 пользователь
 			errors.push( 'мало участников' );
-			users.toggleClass( 'inpt--error' );
-			//setTimeout( ()=> { users.toggleClass( 'inpt--error' ) }, 800 );
+			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
 		if ( this.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
 			errors.push( 'дата события в прошлом' );
-			date.toggleClass( 'inpt--error' );
-			//setTimeout( ()=> { date.toggleClass( 'inpt--error' ) }, 800 );
+			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
 		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала
 			errors.push( 'неверно указано время' );
-			startInpt.toggleClass( 'inpt--error' );
-			//setTimeout( ()=> { startInpt.toggleClass( 'inpt--error' ) }, 800 );
-			endInpt.toggleClass( 'inpt--error' );
-			//setTimeout( ()=> { endInpt.toggleClass( 'inpt--error' ) }, 800 );
+			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
+			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
 		if ( !this.state.selectedRoom ) { // переговорка выбрана
 			errors.push( 'не выбрана переговорка' );
