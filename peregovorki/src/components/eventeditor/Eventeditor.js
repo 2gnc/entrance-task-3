@@ -49,8 +49,25 @@ class Eventeditor extends Component {
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
 		this.validation = this.validation.bind( this );
+		this.fixErrors = this.fixErrors.bind( this );
 	}
 	
+	fixErrors() {
+		this.setState({
+			showModal: '',
+		});
+		let removeBorder = (e) => {
+			if ( $(e.target).hasClass('inpt--error') ) {
+				$(e.target).toggleClass( 'inpt--error' );
+			}
+		};
+		$( '#eventTheme' ).on('focus', removeBorder);
+		$( '#eventUsersInpt' ).on('focus', removeBorder);
+		$( '#eventDate' ).on('focus', removeBorder);
+		$( '#timeStart' ).on('focus', removeBorder);
+		$( '#timeEnd' ).on('focus', removeBorder);
+	}
+
 	validation() { //TODO добавить уловия проверки для редактирования события
 		let errors = [];
 		let theme = $( '#eventTheme' );
@@ -67,24 +84,24 @@ class Eventeditor extends Component {
 		if ( theme.val() < 3 ) {// тема сообщения указана
 			errors.push( 'непонятная тема' );
 			theme.toggleClass( 'inpt--error' );
-			setTimeout( ()=> { theme.toggleClass( 'inpt--error' ) }, 800 );
+			//setTimeout( ()=> { theme.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( this.state.selectedUsers.length < 1 ) { // выбран хотя бы 1 пользователь
 			errors.push( 'мало участников' );
 			users.toggleClass( 'inpt--error' );
-			setTimeout( ()=> { users.toggleClass( 'inpt--error' ) }, 800 );
+			//setTimeout( ()=> { users.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( this.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
 			errors.push( 'дата события в прошлом' );
 			date.toggleClass( 'inpt--error' );
-			setTimeout( ()=> { date.toggleClass( 'inpt--error' ) }, 800 );
+			//setTimeout( ()=> { date.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала
 			errors.push( 'неверно указано время' );
 			startInpt.toggleClass( 'inpt--error' );
-			setTimeout( ()=> { startInpt.toggleClass( 'inpt--error' ) }, 800 );
+			//setTimeout( ()=> { startInpt.toggleClass( 'inpt--error' ) }, 800 );
 			endInpt.toggleClass( 'inpt--error' );
-			setTimeout( ()=> { endInpt.toggleClass( 'inpt--error' ) }, 800 );
+			//setTimeout( ()=> { endInpt.toggleClass( 'inpt--error' ) }, 800 );
 		}
 		if ( !this.state.selectedRoom ) { // переговорка выбрана
 			errors.push( 'не выбрана переговорка' );
@@ -193,7 +210,7 @@ class Eventeditor extends Component {
 		
 		let showModal = () => {
 			if( this.state.showModal === 'error' ) {
-				return ( <Modal message = {this.errors} type = "error" />);
+				return ( <Modal message = {this.errors} type = "error" fixHandler = {this.fixErrors} />);
 			}
 		};
 		
