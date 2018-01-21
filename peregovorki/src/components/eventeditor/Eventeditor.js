@@ -38,7 +38,7 @@ class Eventeditor extends Component {
 		
 		this.timer = null;
 		this.errors = '';
-		this.eventInfo = '';
+		this.roomInfo = '';
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -94,7 +94,7 @@ class Eventeditor extends Component {
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
-		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
+		if ( !moment(startTime).isBefore( endTime, 'minute' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
 			errors.push( 'неверно указано время' ); //TODO проверять дилтельнось события не короче 5 минут
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
@@ -133,6 +133,14 @@ class Eventeditor extends Component {
 					showModal: 'error',
 				});
 			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок наъдится в recomendations, а занятость участников не проверяется)
+				this.eventInfo = this.state.eventDate.format( 'DD MMMM YYYY' ) +
+					', ' +
+					$( '#timeStart' ).val() +
+					' - ' +
+					$( '#timeEnd' ).val() +
+					' ' +
+					this.roomInfo;
+				
 				this.setState({
 					showModal: '',
 				});
@@ -199,11 +207,12 @@ class Eventeditor extends Component {
 			state.login.toLowerCase().indexOf(value.toLowerCase()) !== -1
 		);
 	}
-	selectedRoomUpd( roomId ) {
-		if(roomId) {
+	selectedRoomUpd( roomId, roomName, roomFloor ) {
+		if( roomId && roomName && roomFloor ) {
 			this.setState({
 				selectedRoom: roomId,
 			});
+			this.roomInfo = roomName + ' · ' + roomFloor + ' этаж';
 		}
 	}
 	render () {
@@ -212,14 +221,13 @@ class Eventeditor extends Component {
 			return null;
 		}
 		
-		console.log( 'state', this.state) ;
-		console.log( 'errors', this.errors );
-		console.log( 'info', this.eventInfo  );
-		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
 		}
-		
+/**
+ * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
+ * @return Компонент <Modal /> с параметрами.
+ */
 		let showModal = () => {
 			if( this.state.showModal === 'error' ) {
 				return ( <Modal message = {this.errors} type = "error" fixHandler = {this.fixErrors} />);
@@ -229,29 +237,42 @@ class Eventeditor extends Component {
 				return null
 			}
 		};
-		
+/**
+ * Function dateForInput определяет, какую дату поставить в датапикер.
+ * @return {*|moment.Moment}
+ */
 		let dateForInput = () => {
 			if (this.props.routeParams.eventid === 'new') {
 				return this.state.eventDate;
 			}
+			if ( this.props.routeParams.data ) {
+				let mask = /^\d{8}/;
+				let date = mask.exec( this.props.routeParams.data )[0];
+				return moment(date);
+			}
 		};
-		
-		let hasButton = false;
+
 		let eventmode = this.props.routeParams.eventid;
-		let heading;
-		if (eventmode === 'new') {
-			heading = 'Новая встреча';
-		} else {
-			heading = 'Редактирование встречи';
-		}
+/**
+ * Function getHeading определяет, какой выводить заголовок.
+ * @return {string} Строка заголовка.
+ */
+		let getHeading = () => {
+			if ( eventmode === 'new' || /(\W|^)make(\W|$)/.exec( this.props.route.path ) ) {
+				return 'Новая встреча';
+			} else {
+				return 'Редактирование встречи';
+			}
+		};
+
 		let target;
 		return (
 			<div className='App__wrapper'>
-				<Header hasButton = {hasButton} />
+				<Header hasButton = {false} />
 				<form className='event' method='GET' action='#'>
 					<div className='event__wrapper'>
 						<div className='event__heading'>
-							<div className='caption'>{heading}</div>
+							<div className='caption'>{getHeading()}</div>
 							<a href="/"><IconClose/></a>
 						</div>
 						<div className='event__row'>

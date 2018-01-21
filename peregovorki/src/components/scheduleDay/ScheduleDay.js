@@ -37,7 +37,7 @@ class ScheduleDay extends Component {
 	addButtons() {
 		let empty = 	$('.schedule__innerslot--empty');
 		for (let i = 0; i < empty.length; i++ ) {
-			let date = this.props.dayToDisplay.format('DDMMYY');
+			let date = this.props.dayToDisplay.format('YYYYMMDD');
 			let room = $(empty[i]).parent().attr( 'data-room' );
 			let time = () => {
 				if ( $(empty[i] ).hasClass ( 'schedule__innerslot--emptyw12' ) ) {

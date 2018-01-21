@@ -69,7 +69,12 @@ export default class Room extends Component {
 				</div>
 			)} else if (this.props.layout === 'inrecomendations') {
 			return (
-					<div className={'recomendation' + this.getModifier() } data-roomid={this.props.roomId} >
+					<div
+						className={'recomendation' + this.getModifier() }
+						data-roomid = {this.props.roomId}
+						data-roomname = {this.props.name}
+						data-roomfloor = { this.props.floor }
+					>
 						<span className='recomendation__time'>16:00 &ndash; 16:30</span>
 						<span className='recomendation__room'>
 							{this.props.name} &middot; {this.getFloor()}
