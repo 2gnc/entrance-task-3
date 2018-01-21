@@ -25,7 +25,7 @@ class ScheduleDay extends Component {
 		});
 	}
 	
-	componentDidUpdate() {
+	componentDidUpdate() { //TODO не выводить плюсы для слотов в прошлом
 		let allEvents = this.getEvents();
 		let todayEvents = this.getTodayEvents(allEvents);
 		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
