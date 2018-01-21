@@ -8,14 +8,15 @@ export default class EventFooter extends Component {
 		
 		let buttons = [];
 		let modifier;
+		
 		if (this.props.mode === "new") {
-			buttons.push( <Button modificator = "btn--grey" command="Отмена" key = "1" /> ); /* ссылка на Главную */
-			buttons.push( <Button modificator = "" command="Создать встречу" key = "2" clickHandler={saveHandler} /> ); /* хэндлер из родительского компонента */
-			modifier = "event__buttons--two";
+			buttons.push(  <a href='/' className = 'btn--link' key = "1"><Button modificator = "btn--grey" command="Отмена"  /></a> );
+			buttons.push( <Button modificator = "" command="Создать встречу" key = "2" clickHandler={saveHandler} /> );
+			modifier = "event__buttons event__buttons--desktop event__buttons--two";
 		}
 		return(
 			<div className="event__footer">
-				<div className={"event__buttons event__buttons--desktop " + {modifier} }>
+				<div className={ modifier }>
 					{buttons}
 				</div>
 			</div>
