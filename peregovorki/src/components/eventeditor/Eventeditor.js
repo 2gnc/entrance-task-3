@@ -8,6 +8,7 @@ import EventParticipants from '../eventparticipants/EventParticipants';
 import EventRecomendations from '../eventRecomendations/EventRecomendations';
 import EventFooter from '../eventFooter/EventFooter';
 import Modal from '../modal/Modal';
+import $ from 'jquery';
 
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
@@ -44,6 +45,62 @@ class Eventeditor extends Component {
 		this.eventCreate = this.eventCreate.bind( this );
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
+		this.saveEvent = this.saveEvent.bind( this );
+		this.validation = this.validation.bind( this );
+	}
+	validation() {
+		let errors = [];
+		let theme = $( '#eventTheme' );
+		let users = $( '#eventUsersInpt' );
+		let date = $( '#eventDate' );
+		let startInpt = $( '#timeStart' );
+		let startTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + startInpt.val();
+		let endInpt = $( '#timeEnd' );
+		let endTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + endInpt.val();
+		
+		console.log(startTime, endTime);
+		console.log( moment(startTime).isBefore( endTime, 'hour' ) );
+		
+		if ( theme.val() < 3 ) {// тема сообщения указана
+			errors.push( 'непонятная тема' );
+			theme.toggleClass( 'inpt--error' );
+			setTimeout( ()=> { theme.toggleClass( 'inpt--error' ) }, 800 );
+		}
+		if ( this.state.selectedUsers.length < 1 ) { // выбран хотя бы 1 пользователь
+			errors.push( 'мало участников' );
+			users.toggleClass( 'inpt--error' );
+			setTimeout( ()=> { users.toggleClass( 'inpt--error' ) }, 800 );
+		}
+		if ( this.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
+			errors.push( 'дата события в прошлом' );
+			date.toggleClass( 'inpt--error' );
+			setTimeout( ()=> { date.toggleClass( 'inpt--error' ) }, 800 );
+		}
+		if ( !moment(startTime).isBefore( endTime, 'hour' ) ) { // время окончания позже времени начала
+			errors.push( 'проверьте время' );
+			startInpt.toggleClass( 'inpt--error' );
+			setTimeout( ()=> { startInpt.toggleClass( 'inpt--error' ) }, 800 );
+			endInpt.toggleClass( 'inpt--error' );
+			setTimeout( ()=> { endInpt.toggleClass( 'inpt--error' ) }, 800 );
+		}
+		if ( !this.state.selectedRoom ) { // переговорка выбрана
+			errors.push( 'выберите переговорку' );
+		}
+		
+		console.log(errors);
+		//возвращаем результат проверки
+		if ( errors.length > 0 ) {
+			return errors;
+		} else {
+			return true;
+		}
+	}
+	saveEvent() { // TODO будет использоваться как для новых событий так и при редактировании
+		if ( this.props.routeParams.eventid === 'new' ) { // если сохраняем новое событие
+			this.validation();
+		} else {
+			return null;
+		}
 	}
 	eventCreate() { //TODO заменить заглушки на переменные
 		this.props.mutate({
@@ -181,6 +238,7 @@ class Eventeditor extends Component {
 										<div className='date-time-inpt__time'>
 											<div className='label label--desktop'>Начало</div>
 											<input className='inpt date-time-inpt__time-inpt'
+											     id="timeStart"
 												   type='text'
 												   pattern='[0-9]{2}:[0-9]{2}'
 												   placeholder='чч:мм'/>
@@ -189,9 +247,10 @@ class Eventeditor extends Component {
 										<div className='date-time-inpt__time'>
 											<div className='label label--desktop'>Конец</div>
 											<input className='inpt date-time-inpt__time-inpt'
-												   type='text'
-												   pattern='[0-9]{2}:[0-9]{2}'
-												   placeholder='чч:мм'/>
+										       id="timeEnd"
+										       type='text'
+										       pattern='[0-9]{2}:[0-9]{2}'
+										       placeholder='чч:мм'/>
 										</div>
 									</div>
 								</div>
@@ -267,7 +326,7 @@ class Eventeditor extends Component {
 							<button className='btn btn--grey'>Отмена</button>
 						</div>
 					</div>
-					<EventFooter mode={eventmode} />
+					<EventFooter mode={eventmode} saveHandler = {this.saveEvent} />
 				</form>
 				{showModal()}
 			</div>

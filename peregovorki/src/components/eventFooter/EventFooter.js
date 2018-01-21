@@ -3,11 +3,14 @@ import Button from "../elements/Button";
 
 export default class EventFooter extends Component {
 	render() {
+		// команды
+		let saveHandler = this.props.saveHandler;
+		
 		let buttons = [];
 		let modifier;
 		if (this.props.mode === "new") {
 			buttons.push( <Button modificator = "btn--grey" command="Отмена" key = "1" /> ); /* ссылка на Главную */
-			buttons.push( <Button modificator = "" command="Создать встречу" key = "2" /> ); /* хэндлер из родительского компонента */
+			buttons.push( <Button modificator = "" command="Создать встречу" key = "2" clickHandler={saveHandler} /> ); /* хэндлер из родительского компонента */
 			modifier = "event__buttons--two";
 		}
 		return(
