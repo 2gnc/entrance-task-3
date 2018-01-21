@@ -38,13 +38,13 @@ class Eventeditor extends Component {
 		
 		this.timer = null;
 		this.errors = '';
+		this.eventInfo = '';
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
 		this.handleDateChange = this.handleDateChange.bind( this );
 		this.eventDelete = this.eventDelete.bind( this );
-		this.eventCreate = this.eventCreate.bind( this );
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
@@ -69,6 +69,7 @@ class Eventeditor extends Component {
 	}
 
 	validation() { //TODO добавить уловия проверки для редактирования события
+		
 		let errors = [];
 		let theme = $( '#eventTheme' );
 		let users = $( '#eventUsersInpt' );
@@ -79,6 +80,7 @@ class Eventeditor extends Component {
 		let endTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + endInpt.val();
 		
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
+		this.eventInfo = '';
 		
 		if ( theme.val() < 3 ) {// тема сообщения указана
 			errors.push( 'непонятная тема' );
@@ -98,7 +100,6 @@ class Eventeditor extends Component {
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
 		if ( !this.state.selectedRoom ) { // переговорка выбрана
-			console.log( "ERROR", this.state.selectedRoom );
 			errors.push( 'не выбрана переговорка' );
 		}
 		
@@ -120,18 +121,21 @@ class Eventeditor extends Component {
 			);
 		}
 	}
-	saveEvent() { // TODO будет использоваться как для новых событий так и при редактировании
+	saveEvent(e) { // TODO будет использоваться как для новых событий так и при редактировании
+		e.preventDefault();
+		
 		if ( this.props.routeParams.eventid === 'new' ) { // если сохраняем новое событие
 			
 			let parameters = this.validation();
 			
-			console.log( '!!!!!',  parameters );
 			if( this.errors.length > 0 ) { // если ошибка валидации - показываем модальное окно с ошибкой
 				this.setState({
 					showModal: 'error',
 				});
 			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок наъдится в recomendations, а занятость участников не проверяется)
-				console.log();
+				this.setState({
+					showModal: '',
+				});
 				
 				this.props.mutate({
 						mutation: 'craeteEvent',
@@ -146,7 +150,9 @@ class Eventeditor extends Component {
 						}
 					})
 					.then(({ data }) => {
-						console.log('got data create', data);
+						this.setState({
+							showModal: 'succes',
+						});
 					}).catch((error) => {
 					console.log('there was an error sending the query create', error);
 				});
@@ -154,28 +160,6 @@ class Eventeditor extends Component {
 		} else {
 			return null;
 		}
-	}
-	eventCreate() { //TODO заменить заглушки на переменные
-		this.props.mutate({
-				mutation: 'craeteEvent',
-				variables: {
-					input: {
-						title: "cc",
-						dateStart: "2018-12-11T21:30:00.981Z",
-						dateEnd: "2018-12-11T21:30:00.981Z"
-					},
-					users: [
-						"1",
-						"3"
-					],
-					room: 1,
-				}
-			})
-			.then(({ data }) => {
-				console.log('got data create', data);
-			}).catch((error) => {
-			console.log('there was an error sending the query create', error);
-		});
 	}
 
 	eventDelete(){ //TODO заменить заглушки на переменные
@@ -223,12 +207,14 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
-		console.log(this.props);
-		console.log(this.state);
 		
 		if(!this.props.data.users) {
 			return null;
 		}
+		
+		console.log( 'state', this.state) ;
+		console.log( 'errors', this.errors );
+		console.log( 'info', this.eventInfo  );
 		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
@@ -237,6 +223,10 @@ class Eventeditor extends Component {
 		let showModal = () => {
 			if( this.state.showModal === 'error' ) {
 				return ( <Modal message = {this.errors} type = "error" fixHandler = {this.fixErrors} />);
+			} else if ( this.state.showModal === 'succes' ) {
+				return ( <Modal message = 'Встреча создана!' type = 'succes' eventInfo = {this.eventInfo} /> );
+			} else {
+				return null
 			}
 		};
 		

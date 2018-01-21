@@ -2,7 +2,11 @@ import React, { Component } from 'react';
 
 export default class Modal extends Component { //TODO проверить верстку кнопок (нет отступов)
 	render() {
-		let errorMsg = this.props.message.join( ', ' );
+		let errorMsg;
+		
+		if (this.props.type === 'error' ) {
+			errorMsg = this.props.message.join( ', ' );
+		}
 		
 		 if (this.props.type === 'error') {
 		 	return (
@@ -22,9 +26,22 @@ export default class Modal extends Component { //TODO проверить вер�
 		 			</div>
 		 		</div>
 		 	);
-		 } else if (this.props.type === 'ok' ) {
+		 } else if (this.props.type === 'succes' ) {
 		 	return (
-		 		null
+			  <div className = 'modal'>
+				  <div className = 'modal__msg'>
+					  <div className = 'modal__row modal__row--icon'><img src='http://localhost:3000/img/emoji1.svg'/></div>
+					  <div className = 'modal__row modal__row--info'>
+						  <div className = 'caption'>{this.props.message}</div>
+						  <div className = 'modal__info'>14 декабря, 15:00—17:00 Готем · 4 этаж</div>
+					  </div>
+					  <div className = 'modal__row modal__row--btn'>
+						  <a href='/' className = 'btn--link'>
+							  <div className = 'btn'>Хорошо</div>
+						  </a>
+					  </div>
+				  </div>
+			  </div>
 		 	);
 		 } else if ( this.props.type === 'warning' ) {
 		 	return (
