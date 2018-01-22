@@ -33,13 +33,13 @@ class Eventeditor extends Component {
 			loading: false,
 			selectedRoom: '',
 			eventDate: moment(),
+			dateToChange: '',
 			showModal: '',
 		};
 		
 		this.timer = null;
 		this.errors = '';
 		this.roomInfo = '';
-
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -52,6 +52,13 @@ class Eventeditor extends Component {
 		this.validation = this.validation.bind( this );
 		this.fixErrors = this.fixErrors.bind( this );
 		this.eventLoader = this.eventLoader.bind( this );
+		this.eventShow = this.eventShow.bind( this );
+	}
+	componentDidUpdate() {
+		
+		if ( this.props.eventToDownload ) {
+			this.eventShow( this.eventLoader() );
+		}
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
@@ -68,20 +75,39 @@ class Eventeditor extends Component {
 			obj.theme = this.props.data.event.title;
 			obj.participants = this.props.data.users.map( (item) => {
 				let x;
-				for (let i = 0; i < usersIds.length; i ++ ) {
-					if( usersIds[i] === item.id ) { x = item };
-				};
-				if (x) {return x} else {return};
+				for ( let i = 0; i < usersIds.length; i ++ ) {
+					if( usersIds[i] === item.id ) { x = item }
+				}
+				if ( x ) { return x } else {return}
 			}).filter( (val) => {
 				return val;
 			});
-			obj.date = this.props.data.event.dateStart;
-			obj.startTime = ''; //TODO сюда преобразованное время
-			obj.endTime = ''; // TODO сюда преобразованное время
-			obj.room = this.props.data.event.room.id;
+			obj.dateMoment = this.props.data.event.dateStart;
+			obj.date = moment( this.props.data.event.dateStart ).format( 'DD MMMM, YYYY' );
+			obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'hh:mm' ); // TODO сюда преобразованное время
+			obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'hh:mm' ); // TODO сюда преобразованное время
+			obj.room = String( this.props.data.event.room.id );
 			return obj;
 			} else {
-			return null
+			return null;
+		}
+	}
+	
+	/**
+	 * Function eventShow Отображает загруженную информацию о событии
+	 * @param {object} eventObj Результат выполнения eventLoader()
+	 */
+	eventShow() { //TODO вынести переменные инпутов в конструктор
+		if (this.props.eventToDownload && this.props.data.event ) {
+			let eventData = this.eventLoader();
+			console.log( 'eventShow starts', eventData );
+			let themeInpt = $( '#eventTheme' );
+			let DateInpt = $( '#eventDate' );
+			let timeStartInpt = $( '#timeStart' );
+			let timeEndInpt = $( '#timeEnd' );
+			
+			themeInpt.val( eventData.theme );
+			if( !DateInpt.val() ) { DateInpt.val( eventData.date ) }
 		}
 	}
 /**
@@ -241,7 +267,9 @@ class Eventeditor extends Component {
 	handleDateChange( date ) {
 		this.setState({
 			eventDate: date,
+			dateToChange: date,
 		});
+		console.log('handleDateChange', date );
 	}
 	fakeRequest( value, cb ) {
 		return setTimeout(cb, 500, value ?
@@ -264,7 +292,7 @@ class Eventeditor extends Component {
 	}
 	render () {
 		console.log(this.props, this.state);
-		console.log( this.props.data.event );
+		console.log( 'this.props.data.event', this.props.data.event );
 		
 		
 /**
@@ -300,14 +328,31 @@ class Eventeditor extends Component {
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
+			console.log( 'режим', this.props.parent.props.route.path, this.state );
 			if (this.props.parent.props.routeParams.eventid === 'new') {
 				return this.state.eventDate;
+			} else if ( this.props.parent.props.route.path === 'event' ) { //TODO уточнить тут
+				let obj = this.eventLoader();
+				let dateOfEvent = moment(obj.dateMoment);
+				if ( !this.state.dateToChange ) {
+					console.log( 'dateForInput', dateOfEvent );
+					return dateOfEvent
+				} else {
+					console.log( 'dateForInput', this.state.dateToChange );
+					return this.state.dateToChange ;
+				}
+			} else if ( this.props.parent.props.route.path === 'make/:data' ) {
+				if ( this.props.parent.props.routeParams.data && !this.state.dateToChange ) {
+					let mask = /^\d{8}/;
+					let date = mask.exec( this.props.parent.props.routeParams.data )[0];
+					return moment(date);
+				} else {
+					return this.state.dateToChange ;
+				}
+			} else {
+				return null ;
 			}
-			if ( this.props.parent.props.routeParams.data ) {
-				let mask = /^\d{8}/;
-				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
-				return moment(date);
-			}
+			
 		};
 /*
  * @const eventmode Режим открытия страницы редактирования. Может быть "new" или "make/:data", добавить режим просмотра существующего
