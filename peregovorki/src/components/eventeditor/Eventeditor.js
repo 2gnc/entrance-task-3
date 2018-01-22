@@ -51,10 +51,39 @@ class Eventeditor extends Component {
 		this.saveEvent = this.saveEvent.bind( this );
 		this.validation = this.validation.bind( this );
 		this.fixErrors = this.fixErrors.bind( this );
-		//this.getEventToDownload = this.getEventToDownload.bind( this );
+		this.eventLoader = this.eventLoader.bind( this );
 	}
+/**
+ * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
+ * @returns {object}
+ */
+	eventLoader() {
+		if(this.props.eventToDownload && this.props.data ) {
+			let obj = {};
+			let usersIds = this.props.data.event.users.map( (item) => {
+				return item.id;
+			});
 
 
+			obj.theme = this.props.data.event.title;
+			obj.participants = this.props.data.users.map( (item) => {
+				let x;
+				for (let i = 0; i < usersIds.length; i ++ ) {
+					if( usersIds[i] === item.id ) { x = item };
+				};
+				if (x) {return x} else {return};
+			}).filter( (val) => {
+				return val;
+			});
+			obj.date = this.props.data.event.dateStart;
+			obj.startTime = ''; //TODO сюда преобразованное время
+			obj.endTime = ''; // TODO сюда преобразованное время
+			obj.room = this.props.data.event.room.id;
+			return obj;
+			} else {
+			return null
+		}
+	}
 /**
  * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
  */
@@ -234,6 +263,10 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
+		console.log(this.props, this.state);
+		console.log( this.props.data.event );
+		
+		
 /**
  * Ожидаем загрузку пользователей
  */
@@ -244,7 +277,7 @@ class Eventeditor extends Component {
 		// if(!this.props.data.event) {
 		// 	return null;
 		// }
-
+		setTimeout( () => { console.log( this.eventLoader() )}, 1000);
 		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
