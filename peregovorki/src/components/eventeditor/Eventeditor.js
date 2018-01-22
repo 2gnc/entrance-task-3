@@ -51,7 +51,10 @@ class Eventeditor extends Component {
 		this.validation = this.validation.bind( this );
 		this.fixErrors = this.fixErrors.bind( this );
 	}
-	
+
+/**
+ * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
+ */
 	fixErrors() {
 		this.setState({
 			showModal: '',
@@ -67,7 +70,10 @@ class Eventeditor extends Component {
 		$( '#timeStart' ).on('focus', removeBorder);
 		$( '#timeEnd' ).on('focus', removeBorder);
 	}
-
+/**
+ * Function validation проверяет поля формы и возвращает или найденные ошибки или параметры события
+ * @returns {array||object}
+ */
 	validation() { //TODO добавить уловия проверки для редактирования события
 		
 		let errors = [];
@@ -121,11 +127,18 @@ class Eventeditor extends Component {
 			);
 		}
 	}
+/**
+* Function saveEvent Запускает валидацию и сохраняет событие в БД
+* @parpam {object} e Событие клика на кнопку "Сохранить"
+*/
 	saveEvent(e) { // TODO будет использоваться как для новых событий так и при редактировании
 		e.preventDefault();
 		
-		if ( this.props.routeParams.eventid === 'new' ) { // если сохраняем новое событие
-			
+		if ( this.props.routeParams.eventid === 'new' || this.props.route.path ===  'make/:data' ) { // если сохраняем новое событие
+/**
+ * @const parameters Набор параметров события для сохранения в БД
+ * @type {object} 
+ */
 			let parameters = this.validation();
 			
 			if( this.errors.length > 0 ) { // если ошибка валидации - показываем модальное окно с ошибкой
@@ -183,11 +196,13 @@ class Eventeditor extends Component {
 			console.log('there was an error sending the query delete', error);
 		});
 	}
+
 	handleAddUser( user ) { //TODO если это режим редактирования события - вызывать мутацию addUserToEvent
 		if ( user ) {
 			this.state.selectedUsers.push(user);
 		}
 	}
+
 	handleRemoveUser( user ) { //TODO если это режим редактирования события - вызывать мутацию removeUserFromEvent
 
 	}
@@ -216,7 +231,9 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
-		
+/**
+ * Ожидаем загрузку пользователей
+ */
 		if(!this.props.data.users) {
 			return null;
 		}
@@ -226,7 +243,7 @@ class Eventeditor extends Component {
 		}
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
- * @return Компонент <Modal /> с параметрами.
+ * @returns Компонент <Modal /> с параметрами.
  */
 		let showModal = () => {
 			if( this.state.showModal === 'error' ) {
@@ -239,7 +256,7 @@ class Eventeditor extends Component {
 		};
 /**
  * Function dateForInput определяет, какую дату поставить в датапикер.
- * @return {*|moment.Moment}
+ * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
 			if (this.props.routeParams.eventid === 'new') {
@@ -251,11 +268,14 @@ class Eventeditor extends Component {
 				return moment(date);
 			}
 		};
-
-		let eventmode = this.props.routeParams.eventid;
+/**
+ * @const eventmode Режим открытия страницы редактирования. Может быть "new" или "make/:data", добавить режим просмотра существующего
+ * @type {string} 
+ */
+		const eventmode = (this.props.routeParams.eventid || this.props.route.path);
 /**
  * Function getHeading определяет, какой выводить заголовок.
- * @return {string} Строка заголовка.
+ * @returns {string} Строка заголовка.
  */
 		let getHeading = () => {
 			if ( eventmode === 'new' || /(\W|^)make(\W|$)/.exec( this.props.route.path ) ) {
@@ -264,8 +284,48 @@ class Eventeditor extends Component {
 				return 'Редактирование встречи';
 			}
 		};
+/**
+ * Function getStartEndTimes определяет время начала и конца для новых событий, созданных из плюсика. Берет все символы после второго символа тире.
+ * @returns {string} Строка заголовка.
+ */
+		let getStartEndTimes = () => {
+			if ( this.props.routeParams.data ) {
+				const str = this.props.routeParams.data;
+				let timeslot = str.substr( str.lastIndexOf('-') + 1 );
+				let StartEndTimes = {};
+				StartEndTimes.start = timeslot + ':00';
+				StartEndTimes.end = (+timeslot + 1) + ':00'
+				if (timeslot) {return StartEndTimes} else {return null } ;
+			} else { // добавить чтение из события если режим события
+				return null;
+			}
+			
+		}
+/**
+ * Function startTime возвращает строку для подстановки в инпут "время начала"
+ * @returns {string}
+ */
+		let startTime = () => {
+			if( getStartEndTimes() ){ // 
+				return getStartEndTimes().start;
+			} else {
+				return '';
+			};
+		};
+/**
+ * Function endTime возвращает строку для подстановки в инпут "время окончания"
+ * @returns {string}
+ */
+		let endTime = () => {
+			if( getStartEndTimes() ){
+				return getStartEndTimes().end;
+			} else {
+				return '';
+			};
+		};
 
 		let target;
+
 		return (
 			<div className='App__wrapper'>
 				<Header hasButton = {false} />
@@ -305,16 +365,19 @@ class Eventeditor extends Component {
 											     id="timeStart"
 												   type='text'
 												   pattern='[0-9]{2}:[0-9]{2}'
-												   placeholder='чч:мм'/>
+												   placeholder='чч:мм'
+												   defaultValue = { startTime() }
+												   />
 										</div>
 										<div className='date-time-inpt__separator'>&ndash;</div>
 										<div className='date-time-inpt__time'>
 											<div className='label label--desktop'>Конец</div>
 											<input className='inpt date-time-inpt__time-inpt'
-										       id="timeEnd"
-										       type='text'
-										       pattern='[0-9]{2}:[0-9]{2}'
-										       placeholder='чч:мм'/>
+												id="timeEnd"
+												type='text'
+												pattern='[0-9]{2}:[0-9]{2}'
+												placeholder='чч:мм'
+												defaultValue = { endTime() } />
 										</div>
 									</div>
 								</div>
@@ -370,7 +433,6 @@ class Eventeditor extends Component {
 										this.state.userlist.forEach((item) => {
 											if (item.login === usrname ) {target=item}
 										});
-										//if( this.state.selectedUsers.indexOf(target) === -1 ) {this.state.selectedUsers.push(target)}
 										if ( this.state.selectedUsers.indexOf( target ) === -1 ) {
 											this.handleAddUser( target );
 										}
