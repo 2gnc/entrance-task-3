@@ -3,7 +3,6 @@ import Button from "../elements/Button";
 
 export default class EventFooter extends Component {
 	render() {
-		console.log( 'footer pros', this.props );
 		// команды
 		let saveHandler = this.props.saveHandler;
 		
