@@ -39,6 +39,7 @@ class Eventeditor extends Component {
 		this.timer = null;
 		this.errors = '';
 		this.roomInfo = '';
+
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -50,7 +51,9 @@ class Eventeditor extends Component {
 		this.saveEvent = this.saveEvent.bind( this );
 		this.validation = this.validation.bind( this );
 		this.fixErrors = this.fixErrors.bind( this );
+		//this.getEventToDownload = this.getEventToDownload.bind( this );
 	}
+
 
 /**
  * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
@@ -96,7 +99,7 @@ class Eventeditor extends Component {
 			errors.push( 'мало участников' );
 			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
-		if ( this.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
+		if ( this.props.parent.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
@@ -134,7 +137,7 @@ class Eventeditor extends Component {
 	saveEvent(e) { // TODO будет использоваться как для новых событий так и при редактировании
 		e.preventDefault();
 		
-		if ( this.props.routeParams.eventid === 'new' || this.props.route.path ===  'make/:data' ) { // если сохраняем новое событие
+		if ( this.props.parent.props.routeParams.eventid === 'new' || this.props.parent.props.route.path ===  'make/:data' ) { // если сохраняем новое событие
 /**
  * @const parameters Набор параметров события для сохранения в БД
  * @type {object} 
@@ -237,6 +240,11 @@ class Eventeditor extends Component {
 		if(!this.props.data.users) {
 			return null;
 		}
+
+		// if(!this.props.data.event) {
+		// 	return null;
+		// }
+
 		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
@@ -259,26 +267,26 @@ class Eventeditor extends Component {
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
-			if (this.props.routeParams.eventid === 'new') {
+			if (this.props.parent.props.routeParams.eventid === 'new') {
 				return this.state.eventDate;
 			}
-			if ( this.props.routeParams.data ) {
+			if ( this.props.parent.props.routeParams.data ) {
 				let mask = /^\d{8}/;
-				let date = mask.exec( this.props.routeParams.data )[0];
+				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
 				return moment(date);
 			}
 		};
-/**
+/*
  * @const eventmode Режим открытия страницы редактирования. Может быть "new" или "make/:data", добавить режим просмотра существующего
  * @type {string} 
  */
-		const eventmode = (this.props.routeParams.eventid || this.props.route.path);
+		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
  */
 		let getHeading = () => {
-			if ( eventmode === 'new' || /(\W|^)make(\W|$)/.exec( this.props.route.path ) ) {
+			if ( eventmode === 'new' || /(\W|^)make(\W|$)/.exec( this.props.parent.props.route.path ) ) {
 				return 'Новая встреча';
 			} else {
 				return 'Редактирование встречи';
@@ -289,8 +297,8 @@ class Eventeditor extends Component {
  * @returns {string} Строка заголовка.
  */
 		let getStartEndTimes = () => {
-			if ( this.props.routeParams.data ) {
-				const str = this.props.routeParams.data;
+			if ( this.props.parent.props.routeParams.data ) {
+				const str = this.props.parent.props.routeParams.data;
 				let timeslot = str.substr( str.lastIndexOf('-') + 1 );
 				let StartEndTimes = {};
 				StartEndTimes.start = timeslot + ':00';
@@ -469,11 +477,32 @@ class Eventeditor extends Component {
 				return item
 			}
 		})
-	}
+	};
 }
 
+
+
+const queryAll = gql ` query ($id: ID!) {
+ users {id login homeFloor avatarUrl }
+
+  event (id: $id) {
+    title
+    dateStart
+    dateEnd
+    users {
+      id
+    }
+    room {
+      id
+    }
+  }
+} `;
+
+
+
 export default compose(
-	graphql(gql`query {users {id login homeFloor avatarUrl }}`, {}),
+
+	graphql( queryAll, {options: ({eventToDownload}) => ({ variables: {id: eventToDownload,}, }), } ),
 	graphql(gql` mutation removeEvent ( $id: ID!) { removeEvent (id: $id) { id } }`, {}),
 	graphql(gql`
 		mutation craeteEvent ($input: EventInput!, $users: [ID], $room: ID!) {

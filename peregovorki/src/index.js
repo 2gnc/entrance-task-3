@@ -10,6 +10,7 @@ import { ApolloClient } from 'apollo-client';
 import { HttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import Eventeditor from './components/eventeditor/Eventeditor';
+import EventeditorWrapper from './components/eventeditorWrapper/EventeditorWrapper';
 
 const client = new ApolloClient({
 	link: new HttpLink({ uri: 'http://localhost:3001/graphql' }),
@@ -23,11 +24,11 @@ ReactDOM.render(
 		<Router history={browserHistory}>
 			<Route path='/' component={Main} >
 				<IndexRoute component={App} />
-				<Route path='eventedit/:eventid' component={Eventeditor} />
-				<Route path='event' component={Eventeditor} >
-					<Route path=':eventId' component={Eventeditor} />
+				<Route path='eventedit/:eventid' component={EventeditorWrapper} />
+				<Route path='event' component={EventeditorWrapper} >
+					<Route path=':eventId' component={EventeditorWrapper} />
 				</Route>
-				<Route path='make/:data' component={Eventeditor} />
+				<Route path='make/:data' component={EventeditorWrapper} />
 
 			</Route>
 		</Router>
