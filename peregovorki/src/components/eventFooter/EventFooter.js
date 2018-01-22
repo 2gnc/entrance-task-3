@@ -3,13 +3,14 @@ import Button from "../elements/Button";
 
 export default class EventFooter extends Component {
 	render() {
+		console.log( 'footer pros', this.props );
 		// команды
 		let saveHandler = this.props.saveHandler;
 		
 		let buttons = [];
 		let modifier;
 		
-		if (this.props.mode === "new") {
+		if (this.props.mode === "new" || this.props.mode ===  'make/:data' ) {
 			buttons.push(  <a href='/' className = 'btn--link' key = "1"><Button modificator = "btn--grey" command="Отмена"  /></a> );
 			buttons.push( <Button modificator = "" command="Создать встречу" key = "2" clickHandler={saveHandler} /> );
 			modifier = "event__buttons event__buttons--desktop event__buttons--two";
