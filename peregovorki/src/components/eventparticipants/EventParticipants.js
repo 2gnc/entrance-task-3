@@ -11,18 +11,19 @@ export default class EventParticipants extends Component {
 	}
 	
 	componentDidMount() {
-		
-		$('.event__participants').on( 'click', '*[data-type="remove"]', (event)=>{
-			let papa = $(event.target.parentNode);
-			let name = papa.find('.user__name').text();
-			let x;
-			this.state.users.map((item, i)=> {
-				if(item.login === name) { x = i } return null;
+		let setDeleteHandler = () => {
+			$('.event__participants').on( 'click', '*[data-type="remove"]', (event)=>{
+				let papa = $(event.target.parentNode);
+				let name = papa.find('.user__name').text();
+				let x;
+				this.state.users.map((item, i)=> {
+					if(item.login === name) { x = i } return null;
+				});
+				this.props.parent.handleRemoveUser( name );
+				this.forceUpdate();
 			});
-			this.state.users.splice( x, [1]);
-			this.props.parent.handleRemoveUser( name );
-			this.forceUpdate();
-		});
+		};
+		setTimeout( setDeleteHandler, 500 );
 	}
 	
 	render() {
