@@ -3,6 +3,7 @@ import Room from '../room/Room';
 import $ from 'jquery';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import moment from 'moment';
 
 class EventRecomendationsEmpty extends Component {
 	constructor( props ) {
@@ -10,6 +11,7 @@ class EventRecomendationsEmpty extends Component {
 		this.state = {
 			selectedRoom: '',
 		};
+		
 	}
 	componentDidMount() {
 		let setClicksHandler = ()=> {
@@ -29,14 +31,17 @@ class EventRecomendationsEmpty extends Component {
 					}
 				});
 			});
-		}
-		setTimeout( setClicksHandler , 100);
+		};
+		setTimeout( setClicksHandler , 200);
 	}
-
+	
 	render() {
+		
+		console.log( 'recomendations', this.props.data, this.props );
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
+		
 		if(!this.props.data.rooms) {
 			return null;
 		}
@@ -67,6 +72,7 @@ class EventRecomendationsEmpty extends Component {
 	}
 }
 
+
 const roomsQuery = gql`
 	query {
   rooms {
@@ -75,8 +81,20 @@ const roomsQuery = gql`
     capacity
     floor
   }
+  events {
+    id
+    title
+    dateStart
+    dateEnd
+    users {
+      id
+    }
+    room {
+      id
+    }
+  }
 }
 `;
 
 const EventRecomendations = graphql(roomsQuery)(EventRecomendationsEmpty);
-export default EventRecomendations
+export default EventRecomendations;
