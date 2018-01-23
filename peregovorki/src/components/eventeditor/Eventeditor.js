@@ -45,7 +45,6 @@ class Eventeditor extends Component {
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
 		this.handleDateChange = this.handleDateChange.bind( this );
-		this.eventDelete = this.eventDelete.bind( this );
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
@@ -102,8 +101,7 @@ class Eventeditor extends Component {
 			let usersIds = this.props.data.event.users.map( (item) => {
 				return item.id;
 			});
-
-
+console.log(this.props, this.state);
 			obj.theme = this.props.data.event.title;
 			obj.participants = this.props.data.users.map( (item) => {
 				let x;
@@ -139,7 +137,10 @@ class Eventeditor extends Component {
 			
 			//заполняем тему события
 			themeInpt.val( eventData.theme );
-			if( !DateInpt.val() ) { DateInpt.val( eventData.date ); }
+			// заполняем дату
+			if( !DateInpt.val() ) {
+				DateInpt.val( eventData.date);
+			}
 			// заполняем пользователей
 			if ( this.state.selectedUsers.length === 0 ) { //TODO не работает удаление
 				this.setState({
@@ -228,7 +229,22 @@ class Eventeditor extends Component {
 	}
 	deleteEvent(e) {
 		e.preventDefault();
-		//TODO удаление события если режим event и событие не в прошлом
+		if ( !moment($( '#eventDate' ).val()).isBefore( moment(), 'day' ) ) {console.log( 'нельзя удалять встречи в прошлом' ); return}
+		
+		if( this.props.eventToDownload ) {
+			this.props.removeEvent({
+					mutation: 'removeEvent',
+					variables: {
+						id: this.props.eventToDownload
+					}
+				})
+				.then(({ data }) => {
+					console.log('got data delete', data);
+				}).catch((error) => {
+				console.log('there was an error sending the query delete', error);
+			});
+		}
+		
 	}
 /**
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
@@ -261,7 +277,7 @@ class Eventeditor extends Component {
 					showModal: '',
 				});
 				
-				this.props.mutate({
+				this.props.craeteEvent({
 						mutation: 'craeteEvent',
 						variables: {
 							input: {
@@ -285,21 +301,7 @@ class Eventeditor extends Component {
 			return null;
 		}
 	}
-
-	eventDelete(){ //TODO заменить заглушки на переменные
-		this.props.mutate({
-				mutation: 'removeEvent',
-				variables: {
-					id: 81
-				}
-			})
-			.then(({ data }) => {
-				console.log('got data delete', data);
-			}).catch((error) => {
-			console.log('there was an error sending the query delete', error);
-		});
-	}
-
+	
 	handleAddUser( user ) { //TODO если это режим редактирования события - вызывать мутацию addUserToEvent
 		if ( user ) {
 			this.state.selectedUsers.push(user);
@@ -615,7 +617,7 @@ const queryAll = gql ` query ($id: ID!) {
 export default compose(
 
 	graphql( queryAll, {options: ({eventToDownload}) => ({ variables: {id: eventToDownload,}, }), } ),
-	graphql(gql` mutation removeEvent ( $id: ID!) { removeEvent (id: $id) { id } }`, {}),
+	graphql(gql` mutation removeEvent ($id: ID!) { removeEvent (id: $id) { id } }`, {name: 'removeEvent'}),
 	graphql(gql`
 		mutation craeteEvent ($input: EventInput!, $users: [ID], $room: ID!) {
 			createEvent( input: $input, User:$users, Room:$room ) {
@@ -630,6 +632,6 @@ export default compose(
 				}
 			}
 		}
-	`, {})
+	`, {name: 'craeteEvent'})
 
 )(Eventeditor);
