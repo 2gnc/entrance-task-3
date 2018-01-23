@@ -18,5 +18,5 @@ module.exports = {
         },
     rooms (root, args, context) {
         return models.Room.findAll({}, context);
-    }
+    },
 };
