@@ -14,7 +14,6 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import 'moment/locale/ru';
 import 'react-datepicker/dist/react-datepicker.css';
-
 moment.locale('ru');
 moment.updateLocale('ru', {
 	monthsShort : [
@@ -35,6 +34,7 @@ class Eventeditor extends Component {
 			eventDate: moment(),
 			dateToChange: '',
 			showModal: '',
+			recomendations: [],
 		};
 		
 		this.timer = null;
@@ -49,16 +49,48 @@ class Eventeditor extends Component {
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
+		this.deleteEvent = this.deleteEvent.bind( this );
 		this.validation = this.validation.bind( this );
 		this.fixErrors = this.fixErrors.bind( this );
 		this.eventLoader = this.eventLoader.bind( this );
 		this.eventShow = this.eventShow.bind( this );
+		this.changer = this.changer.bind( this );
+		this.getRecomendation = this.getRecomendation.bind( this );
 	}
-	componentDidUpdate() {
+	componentDidMount() {
 		
+		setTimeout( () => {
+			let users = $ ( '#eventUsersInpt' );
+			let date = $ ( '#eventDate' );
+			let startInpt = $ ( '#timeStart' );
+			let endInpt = $ ( '#timeEnd' );
+			
+			date.on ( 'change', this.changer );
+			startInpt.on ( 'change', this.changer );
+			endInpt.on ( 'change', this.changer );
+			
+		}, 500);
+	}
+	
+	componentDidUpdate() {
 		if ( this.props.eventToDownload ) {
 			this.eventShow( this.eventLoader() );
 		}
+	}
+	changer() {
+		console.log('!!!!!', this.props.data);
+		// вызвать рекомендации
+		this.getRecomendation();
+	}
+	getRecomendation() {
+			let recomendations = [];
+			let recomendation = {};
+			
+			this.setState({
+				recomendations: recomendations,
+			});
+			
+			return recomendations;
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
@@ -98,16 +130,25 @@ class Eventeditor extends Component {
 	 * @param {object} eventObj Результат выполнения eventLoader()
 	 */
 	eventShow() { //TODO вынести переменные инпутов в конструктор
-		if (this.props.eventToDownload && this.props.data.event ) {
+		if ( this.props.eventToDownload && this.props.data.event ) {
 			let eventData = this.eventLoader();
-			console.log( 'eventShow starts', eventData );
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
 			let timeStartInpt = $( '#timeStart' );
 			let timeEndInpt = $( '#timeEnd' );
 			
+			//заполняем тему события
 			themeInpt.val( eventData.theme );
-			if( !DateInpt.val() ) { DateInpt.val( eventData.date ) }
+			if( !DateInpt.val() ) { DateInpt.val( eventData.date ); }
+			// заполняем пользователей
+			if ( this.state.selectedUsers.length === 0 ) { //TODO не работает удаление
+				this.setState({
+					selectedUsers: eventData.participants,
+				});
+			}
+			// заполняем время
+			timeStartInpt.val( eventData.startTime );
+			timeEndInpt.val( eventData.endTime );
 		}
 	}
 /**
@@ -184,6 +225,10 @@ class Eventeditor extends Component {
 				}
 			);
 		}
+	}
+	deleteEvent(e) {
+		e.preventDefault();
+		//TODO удаление события если режим event и событие не в прошлом
 	}
 /**
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
@@ -262,14 +307,17 @@ class Eventeditor extends Component {
 	}
 
 	handleRemoveUser( user ) { //TODO если это режим редактирования события - вызывать мутацию removeUserFromEvent
-
+		let x;
+		this.state.selectedUsers.map((item, i)=> {
+			if(item.login === user) { x = i } return null;
+		});
+		this.state.selectedUsers.splice( x, [1]);
 	}
 	handleDateChange( date ) {
 		this.setState({
 			eventDate: date,
 			dateToChange: date,
 		});
-		console.log('handleDateChange', date );
 	}
 	fakeRequest( value, cb ) {
 		return setTimeout(cb, 500, value ?
@@ -291,10 +339,7 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
-		console.log(this.props, this.state);
-		console.log( 'this.props.data.event', this.props.data.event );
-		
-		
+	
 /**
  * Ожидаем загрузку пользователей
  */
@@ -305,7 +350,6 @@ class Eventeditor extends Component {
 		// if(!this.props.data.event) {
 		// 	return null;
 		// }
-		setTimeout( () => { console.log( this.eventLoader() )}, 1000);
 		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
@@ -335,10 +379,8 @@ class Eventeditor extends Component {
 				let obj = this.eventLoader();
 				let dateOfEvent = moment(obj.dateMoment);
 				if ( !this.state.dateToChange ) {
-					console.log( 'dateForInput', dateOfEvent );
 					return dateOfEvent
 				} else {
-					console.log( 'dateForInput', this.state.dateToChange );
 					return this.state.dateToChange ;
 				}
 			} else if ( this.props.parent.props.route.path === 'make/:data' ) {
@@ -386,7 +428,7 @@ class Eventeditor extends Component {
 				return null;
 			}
 			
-		}
+		};
 /**
  * Function startTime возвращает строку для подстановки в инпут "время начала"
  * @returns {string}
@@ -396,7 +438,7 @@ class Eventeditor extends Component {
 				return getStartEndTimes().start;
 			} else {
 				return '';
-			};
+			}
 		};
 /**
  * Function endTime возвращает строку для подстановки в инпут "время окончания"
@@ -407,7 +449,7 @@ class Eventeditor extends Component {
 				return getStartEndTimes().end;
 			} else {
 				return '';
-			};
+			}
 		};
 
 		let target;
@@ -528,17 +570,11 @@ class Eventeditor extends Component {
 								<EventParticipants users = {this.state} parent = {this} />
 							</div>
 							<div className='event__separator'></div>
-							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} />
+							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} />
 						</div>
 					</div>
-					<div className='event__new-event-controls'>
-						<div className='event__msg'>Выберите переговорку</div>
-						<div className='event__buttons event__buttons--newevent'>
-							<button className='btn btn--grey' disabled='disabled'>Создать встречу</button>
-							<button className='btn btn--grey'>Отмена</button>
-						</div>
-					</div>
-					<EventFooter mode={eventmode} saveHandler = {this.saveEvent} />
+
+					<EventFooter mode={eventmode} saveHandler = {this.saveEvent} deleteHandler = {this.deleteEvent} />
 				</form>
 				{showModal()}
 			</div>
@@ -558,10 +594,10 @@ class Eventeditor extends Component {
 	};
 }
 
-
-
 const queryAll = gql ` query ($id: ID!) {
  users {id login homeFloor avatarUrl }
+
+
 
   event (id: $id) {
     title
@@ -575,8 +611,6 @@ const queryAll = gql ` query ($id: ID!) {
     }
   }
 } `;
-
-
 
 export default compose(
 
