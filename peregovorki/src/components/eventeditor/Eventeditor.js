@@ -124,11 +124,11 @@ console.log(this.props, this.state);
 		}
 	}
 	
-	/**
-	 * Function eventShow Отображает загруженную информацию о событии
-	 * @param {object} eventObj Результат выполнения eventLoader()
-	 */
-	eventShow() { //TODO вынести переменные инпутов в конструктор
+/**
+ * Function eventShow Отображает загруженную информацию о событии
+ * @param {object} eventObj Результат выполнения eventLoader()
+ */
+	eventShow() {
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let eventData = this.eventLoader();
 			let themeInpt = $( '#eventTheme' );
@@ -143,7 +143,7 @@ console.log(this.props, this.state);
 				DateInpt.val( eventData.date);
 			}
 			// заполняем пользователей
-			if ( this.state.selectedUsers.length === 0 ) { //TODO не работает удаление
+			if ( this.state.selectedUsers.length === 0 ) { 
 				this.setState({
 					selectedUsers: eventData.participants,
 				});
