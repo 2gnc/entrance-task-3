@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 
-export default class Modal extends Component { //TODO проверить верстку кнопок (нет отступов)
+export default class Modal extends Component {
+
 	render() {
+		
 		let errorMsg;
 		
 		 if (this.props.type === 'error') {
