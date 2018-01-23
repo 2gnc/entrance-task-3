@@ -11,6 +11,7 @@ export default class EventParticipants extends Component {
 	}
 	
 	componentDidMount() {
+		
 		$('.event__participants').on( 'click', '*[data-type="remove"]', (event)=>{
 			let papa = $(event.target.parentNode);
 			let name = papa.find('.user__name').text();
