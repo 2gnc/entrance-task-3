@@ -13,15 +13,19 @@ class EventRecomendationsEmpty extends Component {
 		};
 		
 	}
+
 	componentDidMount() {
+/** 
+ * Fucntion setClicksHandler устанавливает обработчики событий на блоки с рекомендацией. Устанавливает отсрочку, чтобы <Rom/> усплели подгрузиться.
+ */
 		let setClicksHandler = ()=> {
-			$( document ).ready(() => {
+			$( document ).ready( () => {
 				$( '.recomendation__box' ).on( 'click', ( '.recomendation' ), (event)=>{
 					event.stopPropagation();
 					
-					let selectedRoomId = $(event.target.closest('.recomendation')).attr('data-roomid');
-					let selectedRoomName = $( event.target.closest('.recomendation')).attr('data-roomname');
-					let selectedRoomFloor = $( event.target.closest('.recomendation')).attr('data-roomfloor');
+					let selectedRoomId = $( event.target.closest('.recomendation') ).attr( 'data-roomid' );
+					let selectedRoomName = $( event.target.closest('.recomendation') ).attr( 'data-roomname' );
+					let selectedRoomFloor = $( event.target.closest('.recomendation') ).attr( 'data-roomfloor' );
 					
 					this.props.parent.selectedRoomUpd( selectedRoomId, selectedRoomName, selectedRoomFloor );
 					if( this.state.selectedRoom !== this.props.selectedRoom ) {
@@ -32,7 +36,7 @@ class EventRecomendationsEmpty extends Component {
 				});
 			});
 		};
-		setTimeout( setClicksHandler , 200);
+		setTimeout( setClicksHandler , 200 );
 	}
 	
 	render() {
@@ -48,7 +52,7 @@ class EventRecomendationsEmpty extends Component {
 		let roomsIds = this.props.data.rooms;
 		/*Конец заглушки*/
 		
-		let rooms = roomsIds.map((items, i)=>{
+		let rooms = roomsIds.map( (items, i)=>{
 			return (
 				<Room
 					roomId = {items.id}
