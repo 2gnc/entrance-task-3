@@ -102,7 +102,7 @@ class Eventeditor extends Component {
 			let usersIds = this.props.data.event.users.map( (item) => {
 				return item.id;
 			});
-console.log(this.props, this.state);
+
 			obj.theme = this.props.data.event.title;
 			obj.participants = this.props.data.users.map( (item) => {
 				let x;
