@@ -12,9 +12,7 @@ export default class EventeditorWrapper extends Component {
 				return '';
 			}
 		};
-
-		console.log('!eventToDownload', eventToDownload());
-
+		
 		return (
 			<Eventeditor parent = {this} eventToDownload = {eventToDownload()}  />
 			)

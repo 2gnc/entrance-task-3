@@ -55,6 +55,7 @@ class Eventeditor extends Component {
 		this.eventShow = this.eventShow.bind( this );
 		this.changer = this.changer.bind( this );
 		this.getRecomendation = this.getRecomendation.bind( this );
+		this.deleteDelete = this.deleteDelete.bind( this );
 	}
 	componentDidMount() {
 		
@@ -229,8 +230,11 @@ console.log(this.props, this.state);
 	}
 	deleteEvent(e) {
 		e.preventDefault();
-		if ( !moment($( '#eventDate' ).val()).isBefore( moment(), 'day' ) ) {console.log( 'нельзя удалять встречи в прошлом' ); return}
-		
+		this.setState({
+			showModal: 'deleted',
+		});
+	}
+	deleteDelete(e) {
 		if( this.props.eventToDownload ) {
 			this.props.removeEvent({
 					mutation: 'removeEvent',
@@ -240,11 +244,14 @@ console.log(this.props, this.state);
 				})
 				.then(({ data }) => {
 					console.log('got data delete', data);
+					this.setState({
+						showModal: '',
+					});
+					
 				}).catch((error) => {
 				console.log('there was an error sending the query delete', error);
 			});
 		}
-		
 	}
 /**
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
@@ -365,8 +372,10 @@ console.log(this.props, this.state);
 				return ( <Modal message = {this.errors} type = "error" fixHandler = {this.fixErrors} />);
 			} else if ( this.state.showModal === 'succes' ) {
 				return ( <Modal message = 'Встреча создана!' type = 'succes' eventInfo = {this.eventInfo} /> );
+			} else if ( this.state.showModal === 'deleted' ) {
+				return ( <Modal message = 'Встреча будет удалена безвозвратно!' type = "deleted" deleteHandler = {this.deleteDelete} /> );
 			} else {
-				return null
+				return null;
 			}
 		};
 /**
@@ -374,7 +383,6 @@ console.log(this.props, this.state);
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
-			console.log( 'режим', this.props.parent.props.route.path, this.state );
 			if (this.props.parent.props.routeParams.eventid === 'new') {
 				return this.state.eventDate;
 			} else if ( this.props.parent.props.route.path === 'event' ) { //TODO уточнить тут

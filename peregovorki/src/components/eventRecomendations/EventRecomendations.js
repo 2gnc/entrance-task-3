@@ -37,7 +37,6 @@ class EventRecomendationsEmpty extends Component {
 	
 	render() {
 		
-		console.log( 'recomendations', this.props.data, this.props );
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
