@@ -23,7 +23,7 @@ export default class EventParticipants extends Component {
 				this.forceUpdate();
 			});
 		};
-		if ( !this.props.parent.blockInpts() ) {
+		if ( !this.props.blockInpts ) {
 			setTimeout( setDeleteHandler, 500 );
 		}
 		

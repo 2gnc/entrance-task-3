@@ -41,9 +41,6 @@ class Eventeditor extends Component {
 		this.errors = '';
 		this.roomInfo = '';
 		this.eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
-		this.blockInpts = () => {
-			return ( this.eventmode !== 'event' )? ( false) : ( true);
-		}
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -364,11 +361,11 @@ class Eventeditor extends Component {
 		if(!this.props.data.users) {
 			return null;
 		}
-console.log(this.props, this.state, this.blockInpts() );
 
-		// if(!this.props.data.event) {
-		// 	return null;
-		// }
+		let blockInpts = () => {
+			return ( this.eventmode === 'event' && moment(this.props.data.event.dateStart).isBefore( moment(), 'hour' ) )? ( true ) : ( false );
+		};
+
 		
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
@@ -447,7 +444,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
  * @type {string} 
  */
 		let target;
-		let block = this.blockInpts();
+		let block = blockInpts();
 
 		return (
 			<div className='App__wrapper'>
@@ -465,7 +462,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 									className ='inpt event__text-inpt'
 									type='text' id ='eventTheme'
 									placeholder ='О чем будете говорить?'
-									disabled = { this.blockInpts() }
+									disabled = { blockInpts() }
 									/>
 							</div>
 							<div className='event__col'>
@@ -480,7 +477,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 											id="eventDate"
 											className="inpt date-time-inpt__date-inpt"
 											readOnly={true}
-											disabled = { this.blockInpts() }
+											disabled = { blockInpts() }
 										/>
 									</div>
 									<div className='date-time-inpt__times'>
@@ -492,7 +489,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 												pattern='[0-9]{2}:[0-9]{2}'
 												placeholder='чч:мм'
 												defaultValue = { getStartEndTimes().start }
-												disabled = { this.blockInpts() }
+												disabled = { blockInpts() }
 											/>
 										</div>
 										<div className='date-time-inpt__separator'>&ndash;</div>
@@ -504,7 +501,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 												pattern='[0-9]{2}:[0-9]{2}'
 												placeholder='чч:мм'
 												defaultValue = { getStartEndTimes().end }
-												disabled = { this.blockInpts() }
+												disabled = { blockInpts() }
 											/>
 										</div>
 									</div>
@@ -568,7 +565,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 										this.forceUpdate();
 									}}
 								/>
-								<EventParticipants users = {this.state} parent = {this} />
+								<EventParticipants users = {this.state} parent = {this} blockInpts = { blockInpts() } />
 							</div>
 							<div className='event__separator'></div>
 							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} />
