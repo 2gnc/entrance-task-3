@@ -60,7 +60,6 @@ class Eventeditor extends Component {
 	componentDidMount() {
 		
 		setTimeout( () => {
-			let users = $ ( '#eventUsersInpt' );
 			let date = $ ( '#eventDate' );
 			let startInpt = $ ( '#timeStart' );
 			let endInpt = $ ( '#timeEnd' );
@@ -450,6 +449,7 @@ console.log("dateForInput", dateForInput() );
 			}
 			return StartEndTimes;
 		};
+
 console.log( 'getStartEndTimes', getStartEndTimes() );
 
 /*
