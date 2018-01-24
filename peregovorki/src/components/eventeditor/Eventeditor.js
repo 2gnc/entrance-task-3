@@ -398,7 +398,6 @@ class Eventeditor extends Component {
 			} else if ( this.eventmode === 'make/:data' ) {
 				let mask = /^\d{8}/;
 				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
-				console.log( this.state.neweventDate );
 				if ( this.state.neweventDate === null ) {
 					return moment(date);
 				} else {
@@ -406,8 +405,9 @@ class Eventeditor extends Component {
 				}
 				
 			} else {
-				if( !this.state.neweventDate ) {
-					return this.state.eventDate;
+				if( this.state.neweventDate === null ) {
+					console.log( moment(this.props.data.event.dateStart) );
+					return moment(this.props.data.event.dateStart);
 				} else {
 					return this.state.neweventDate;
 				}
