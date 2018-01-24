@@ -451,29 +451,11 @@ console.log("dateForInput", dateForInput() );
 			return StartEndTimes;
 		};
 console.log( 'getStartEndTimes', getStartEndTimes() );
-/**
- * Function startTime возвращает строку для подстановки в инпут "время начала"
- * @returns {string} //TODO лишняя функция
- */
-		let startTime = () => {
-			if( getStartEndTimes() ){ // 
-				return getStartEndTimes().start;
-			} else {
-				return '';
-			}
-		};
-/**
- * Function endTime возвращает строку для подстановки в инпут "время окончания"
- * @returns {string}
- */
-		let endTime = () => {
-			if( getStartEndTimes() ){
-				return getStartEndTimes().end;
-			} else {
-				return '';
-			}
-		};
 
+/*
+ * @const target //TODO что это?
+ * @type {string} 
+ */
 		let target;
 
 		return (
