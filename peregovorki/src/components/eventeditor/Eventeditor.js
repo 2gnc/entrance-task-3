@@ -123,34 +123,36 @@ class Eventeditor extends Component {
 	}
 	
 /**
- * Function eventShow Отображает загруженную информацию о событии
+ * Function eventShow Отображает загруженную информацию о событии из eventloader()
+ * @param {object} loader результат функции loader()
  * @param {object} eventObj Результат выполнения eventLoader()
  */
-	eventShow() {
+	eventShow( loader ) {
+
 		if ( this.props.eventToDownload && this.props.data.event ) {
-			let eventData = this.eventLoader();
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
 			let timeStartInpt = $( '#timeStart' );
 			let timeEndInpt = $( '#timeEnd' );
 			
 			//заполняем тему события
-			themeInpt.val( eventData.theme );
+			themeInpt.val( loader.theme );
 			// заполняем дату
 			if( !DateInpt.val() ) {
-				DateInpt.val( eventData.date);
+				DateInpt.val( loader.date);
 			}
 			// заполняем пользователей
 			if ( this.state.selectedUsers.length === 0 ) { 
 				this.setState({
-					selectedUsers: eventData.participants,
+					selectedUsers: loader.participants,
 				});
 			}
 			// заполняем время
-			timeStartInpt.val( eventData.startTime );
-			timeEndInpt.val( eventData.endTime );
+			timeStartInpt.val( loader.startTime );
+			timeEndInpt.val( loader.endTime );
 		}
 	}
+
 /**
  * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
  */
@@ -346,7 +348,6 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
-	
 /**
  * Ожидаем загрузку пользователей
  */
