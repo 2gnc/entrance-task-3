@@ -435,27 +435,25 @@ console.log("dateForInput", dateForInput() );
  * @returns {string} Строка заголовка.
  */
 		let getStartEndTimes = () => {
+				let StartEndTimes = {};
 			if ( eventmode === "make/:data" ) {
 				const str = this.props.parent.props.routeParams.data;
 				let timeslot = str.substr( str.lastIndexOf('-') + 1 );
-				let StartEndTimes = {};
 				StartEndTimes.start = timeslot + ':00';
 				StartEndTimes.end = (+timeslot + 1) + ':00'
-				if (timeslot) {return StartEndTimes} else {return null } ;
 			} else if ( eventmode === "event" ) { // добавить чтение из события если режим события
-				let StartEndTimes = {};
 				StartEndTimes.start = moment(this.props.data.event.dateStart).utc().format( 'HH:MM' );
 				StartEndTimes.end = moment(this.props.data.event.dateEnd).utc().format( 'HH:MM' );
-				return StartEndTimes;
 			} else {
-				return null;
+				StartEndTimes.start = '';
+				StartEndTimes.end = '';
 			}
-			
+			return StartEndTimes;
 		};
 console.log( 'getStartEndTimes', getStartEndTimes() );
 /**
  * Function startTime возвращает строку для подстановки в инпут "время начала"
- * @returns {string}
+ * @returns {string} //TODO лишняя функция
  */
 		let startTime = () => {
 			if( getStartEndTimes() ){ // 
@@ -518,7 +516,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 												   type='text'
 												   pattern='[0-9]{2}:[0-9]{2}'
 												   placeholder='чч:мм'
-												   defaultValue = { startTime() }
+												   defaultValue = { getStartEndTimes().start }
 												   />
 										</div>
 										<div className='date-time-inpt__separator'>&ndash;</div>
@@ -529,7 +527,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 												type='text'
 												pattern='[0-9]{2}:[0-9]{2}'
 												placeholder='чч:мм'
-												defaultValue = { endTime() } />
+												defaultValue = { getStartEndTimes().end } />
 										</div>
 									</div>
 								</div>
