@@ -355,6 +355,7 @@ class Eventeditor extends Component {
 		if(!this.props.data.users) {
 			return null;
 		}
+console.log(this.props, this.state);
 
 		// if(!this.props.data.event) {
 		// 	return null;
@@ -378,14 +379,22 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
+/*
+ * @const eventmode Режим открытия страницы редактирования. Может быть "new", "event" или "make/:data".
+ * @type {string} 
+ */
+		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
+
+console.log("eventmode", eventmode);
+
 /**
  * Function dateForInput определяет, какую дату поставить в датапикер.
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
-			if (this.props.parent.props.routeParams.eventid === 'new') {
+			if ( eventmode === 'new' ) {
 				return this.state.eventDate;
-			} else if ( this.props.parent.props.route.path === 'event' ) { //TODO уточнить тут
+			} else if ( eventmode === 'event' ) { //TODO уточнить тут
 				let obj = this.eventLoader();
 				let dateOfEvent = moment(obj.dateMoment);
 				if ( !this.state.dateToChange ) {
@@ -393,7 +402,7 @@ class Eventeditor extends Component {
 				} else {
 					return this.state.dateToChange ;
 				}
-			} else if ( this.props.parent.props.route.path === 'make/:data' ) {
+			} else if ( eventmode === 'make/:data' ) {
 				if ( this.props.parent.props.routeParams.data && !this.state.dateToChange ) {
 					let mask = /^\d{8}/;
 					let date = mask.exec( this.props.parent.props.routeParams.data )[0];
@@ -406,11 +415,10 @@ class Eventeditor extends Component {
 			}
 			
 		};
-/*
- * @const eventmode Режим открытия страницы редактирования. Может быть "new" или "make/:data", добавить режим просмотра существующего
- * @type {string} 
- */
-		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
+
+console.log("dateForInput", dateForInput() );
+
+
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
