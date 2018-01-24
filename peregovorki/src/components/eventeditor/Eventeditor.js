@@ -91,7 +91,7 @@ class Eventeditor extends Component {
 		} else {
 			return null;
 		}
-		console.log( 'changer' );
+		console.log( 'changer', this );
 	}
 
 	getRecomendation() {
@@ -370,6 +370,8 @@ class Eventeditor extends Component {
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
 		}
+
+		console.log(this);
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -387,12 +389,22 @@ class Eventeditor extends Component {
 		};
 
 /**
- * Function dateForInput определяет, какую дату поставить в датапикер.
- * @returns {*|moment.Moment}
+ * Function dateForInput определяет, какую дату поставить в датапикер. 
+ * @returns {*|moment.Moment} 
  */
 		let dateForInput = () => {
-			if ( this.eventmode === 'new' || this.eventmode === 'make/:data' ) {
+			if ( this.eventmode === 'new' ) {
 				return this.state.eventDate;
+			} else if ( this.eventmode === 'make/:data' ) {
+				let mask = /^\d{8}/;
+				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
+				console.log( this.state.neweventDate );
+				if ( this.state.neweventDate === null ) {
+					return moment(date);
+				} else {
+					return this.state.neweventDate;
+				}
+				
 			} else {
 				if( !this.state.neweventDate ) {
 					return this.state.eventDate;
@@ -401,8 +413,6 @@ class Eventeditor extends Component {
 				}
 			}
 		};
-
-console.log("dateForInput", dateForInput() );
 
 
 /**
@@ -436,8 +446,6 @@ console.log("dateForInput", dateForInput() );
 			}
 			return StartEndTimes;
 		};
-
-console.log( 'getStartEndTimes', getStartEndTimes() );
 
 /*
  * @const target //TODO что это?
