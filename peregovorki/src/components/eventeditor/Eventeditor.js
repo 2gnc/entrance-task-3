@@ -40,6 +40,7 @@ class Eventeditor extends Component {
 		this.timer = null;
 		this.errors = '';
 		this.roomInfo = '';
+		this.eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -75,10 +76,10 @@ class Eventeditor extends Component {
 	}
 
 	changer() {
-		console.log('!!!!!', this.props.data);
 		// вызвать рекомендации
 		this.getRecomendation();
 	}
+
 	getRecomendation() {
 			let recomendations = [];
 			let recomendation = {};
@@ -112,8 +113,8 @@ class Eventeditor extends Component {
 			});
 			obj.dateMoment = this.props.data.event.dateStart;
 			obj.date = moment( this.props.data.event.dateStart ).format( 'DD MMMM, YYYY' );
-			obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'hh:mm' ); // TODO сюда преобразованное время
-			obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'hh:mm' ); // TODO сюда преобразованное время
+			obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'HH:mm' ); 
+			obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'HH:mm' ); 
 			obj.room = String( this.props.data.event.room.id );
 			return obj;
 			} else {
@@ -376,13 +377,13 @@ console.log(this.props, this.state);
 				return null;
 			}
 		};
-/*
- * @const eventmode Режим открытия страницы редактирования. Может быть "new", "event" или "make/:data".
- * @type {string} 
- */
-		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
+// /*
+//  * @const eventmode Режим открытия страницы редактирования. Может быть "new", "event" или "make/:data".
+//  * @type {string} 
+//  */
+// 		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
 
-console.log("eventmode", eventmode);
+// console.log("eventmode", eventmode);
 
 
 /**
@@ -390,9 +391,9 @@ console.log("eventmode", eventmode);
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
-			if ( eventmode === 'new' ) {
+			if ( this.eventmode === 'new' ) {
 				return this.state.eventDate;
-			} else if ( eventmode === 'event' ) { //TODO уточнить тут
+			} else if ( this.eventmode === 'event' ) { //TODO уточнить тут
 				let obj = this.eventLoader();
 				let dateOfEvent = moment(obj.dateMoment);
 				if ( !this.state.dateToChange ) {
@@ -400,7 +401,7 @@ console.log("eventmode", eventmode);
 				} else {
 					return this.state.dateToChange ;
 				}
-			} else if ( eventmode === 'make/:data' ) {
+			} else if ( this.eventmode === 'make/:data' ) {
 				if ( this.props.parent.props.routeParams.data && !this.state.dateToChange ) {
 					let mask = /^\d{8}/;
 					let date = mask.exec( this.props.parent.props.routeParams.data )[0];
@@ -422,7 +423,7 @@ console.log("dateForInput", dateForInput() );
  * @returns {string} Строка заголовка.
  */
 		let getHeading = () => {
-			if ( eventmode === 'new' || eventmode === 'make/:data' ) {
+			if ( this.eventmode === 'new' || this.eventmode === 'make/:data' ) {
 				return 'Новая встреча';
 			} else {
 				return 'Редактирование встречи';
@@ -434,12 +435,12 @@ console.log("dateForInput", dateForInput() );
  */
 		let getStartEndTimes = () => {
 				let StartEndTimes = {};
-			if ( eventmode === "make/:data" ) {
+			if ( this.eventmode === "make/:data" ) {
 				const str = this.props.parent.props.routeParams.data;
 				let timeslot = str.substr( str.lastIndexOf('-') + 1 );
 				StartEndTimes.start = timeslot + ':00';
 				StartEndTimes.end = (+timeslot + 1) + ':00'
-			} else if ( eventmode === "event" ) { // добавить чтение из события если режим события
+			} else if ( this.eventmode === "event" ) { // добавить чтение из события если режим события
 				StartEndTimes.start = moment(this.props.data.event.dateStart).utc().format( 'HH:MM' );
 				StartEndTimes.end = moment(this.props.data.event.dateEnd).utc().format( 'HH:MM' );
 			} else {
@@ -577,7 +578,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 						</div>
 					</div>
 
-					<EventFooter mode={eventmode} saveHandler = {this.saveEvent} deleteHandler = {this.deleteEvent} />
+					<EventFooter mode={this.eventmode} saveHandler = {this.saveEvent} deleteHandler = {this.deleteEvent} />
 				</form>
 				{showModal()}
 			</div>
