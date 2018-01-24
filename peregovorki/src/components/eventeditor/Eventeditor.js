@@ -424,7 +424,7 @@ console.log("dateForInput", dateForInput() );
  * @returns {string} Строка заголовка.
  */
 		let getHeading = () => {
-			if ( eventmode === 'new' || /(\W|^)make(\W|$)/.exec( this.props.parent.props.route.path ) ) {
+			if ( eventmode === 'new' || eventmode === 'make/:data' ) {
 				return 'Новая встреча';
 			} else {
 				return 'Редактирование встречи';
