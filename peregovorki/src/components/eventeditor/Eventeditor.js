@@ -32,7 +32,7 @@ class Eventeditor extends Component {
 			loading: false,
 			selectedRoom: '',
 			eventDate: moment(),
-			dateToChange: '',
+			neweventDate: null,
 			showModal: '',
 			recomendations: [],
 		};
@@ -45,7 +45,7 @@ class Eventeditor extends Component {
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
-		this.handleDateChange = this.handleDateChange.bind( this );
+		//this.handleDateChange = this.handleDateChange.bind( this );
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
@@ -74,21 +74,35 @@ class Eventeditor extends Component {
 			}
 		}, 500);
 	}
-
-	changer() {
+/**
+ * Function changer() Записывает в стейт новые значения для последующего изменения
+ */
+	changer( date ) {
 		// вызвать рекомендации
 		this.getRecomendation();
+		if ( this.eventmode === 'new' ) {
+			this.state.eventDate = date;
+			this.state.neweventDate = date;
+		} else if ( this.eventmode === 'event' ) {
+			this.state.neweventDate = date;
+		} else if ( this.eventmode === 'make/:data' ) {
+			this.state.eventDate = date;
+			this.state.neweventDate = date;
+		} else {
+			return null;
+		}
+		console.log( 'changer' );
 	}
 
 	getRecomendation() {
-			let recomendations = [];
-			let recomendation = {};
-			
-			this.setState({
-				recomendations: recomendations,
-			});
-			
-			return recomendations;
+		let recomendations = [];
+		let recomendation = {};
+		
+		this.setState({
+			recomendations: recomendations,
+		});
+		
+		return recomendations;
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
@@ -128,7 +142,6 @@ class Eventeditor extends Component {
  * @param {object} eventObj Результат выполнения eventLoader()
  */
 	eventShow( loader ) {
-
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
@@ -152,7 +165,6 @@ class Eventeditor extends Component {
 			timeEndInpt.val( loader.endTime );
 		}
 	}
-
 /**
  * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
  */
@@ -322,12 +334,7 @@ class Eventeditor extends Component {
 		});
 		this.state.selectedUsers.splice( x, [1]);
 	}
-	handleDateChange( date ) {
-		this.setState({
-			eventDate: date,
-			dateToChange: date,
-		});
-	}
+
 	fakeRequest( value, cb ) {
 		return setTimeout(cb, 500, value ?
 			this.state.userlist.filter( state => this.matchStateToTerm(state, value) ) :
@@ -378,42 +385,21 @@ console.log(this.props, this.state);
 				return null;
 			}
 		};
-// /*
-//  * @const eventmode Режим открытия страницы редактирования. Может быть "new", "event" или "make/:data".
-//  * @type {string} 
-//  */
-// 		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
-
-// console.log("eventmode", eventmode);
-
 
 /**
  * Function dateForInput определяет, какую дату поставить в датапикер.
  * @returns {*|moment.Moment}
  */
 		let dateForInput = () => {
-			if ( this.eventmode === 'new' ) {
+			if ( this.eventmode === 'new' || this.eventmode === 'make/:data' ) {
 				return this.state.eventDate;
-			} else if ( this.eventmode === 'event' ) { //TODO уточнить тут
-				let obj = this.eventLoader();
-				let dateOfEvent = moment(obj.dateMoment);
-				if ( !this.state.dateToChange ) {
-					return dateOfEvent
-				} else {
-					return this.state.dateToChange ;
-				}
-			} else if ( this.eventmode === 'make/:data' ) {
-				if ( this.props.parent.props.routeParams.data && !this.state.dateToChange ) {
-					let mask = /^\d{8}/;
-					let date = mask.exec( this.props.parent.props.routeParams.data )[0];
-					return moment(date);
-				} else {
-					return this.state.dateToChange ;
-				}
 			} else {
-				return null ;
+				if( !this.state.neweventDate ) {
+					return this.state.eventDate;
+				} else {
+					return this.state.neweventDate;
+				}
 			}
-			
 		};
 
 console.log("dateForInput", dateForInput() );
@@ -484,7 +470,7 @@ console.log( 'getStartEndTimes', getStartEndTimes() );
 										<label className='label label--touch' htmlFor='eventDate'>Дата и время</label>
 										<DatePicker
 											selected = { dateForInput() }
-											onChange = {this.handleDateChange}
+											onChange = {this.changer}
 											dateFormat="DD MMMM, YYYY"
 											id="eventDate"
 											className="inpt date-time-inpt__date-inpt"
