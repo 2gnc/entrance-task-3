@@ -57,8 +57,8 @@ class Eventeditor extends Component {
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
 	}
+
 	componentDidMount() {
-		
 		setTimeout( () => {
 			let date = $ ( '#eventDate' );
 			let startInpt = $ ( '#timeStart' );
@@ -67,15 +67,13 @@ class Eventeditor extends Component {
 			date.on ( 'change', this.changer );
 			startInpt.on ( 'change', this.changer );
 			endInpt.on ( 'change', this.changer );
-			
+
+			if ( this.props.eventToDownload ) {
+				this.eventShow( this.eventLoader() );
+			}
 		}, 500);
 	}
-	
-	componentDidUpdate() {
-		if ( this.props.eventToDownload ) {
-			this.eventShow( this.eventLoader() );
-		}
-	}
+
 	changer() {
 		console.log('!!!!!', this.props.data);
 		// вызвать рекомендации
@@ -385,6 +383,7 @@ console.log(this.props, this.state);
 		const eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
 
 console.log("eventmode", eventmode);
+
 
 /**
  * Function dateForInput определяет, какую дату поставить в датапикер.
