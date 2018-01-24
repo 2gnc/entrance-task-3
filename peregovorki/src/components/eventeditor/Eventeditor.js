@@ -431,22 +431,28 @@ console.log("dateForInput", dateForInput() );
 			}
 		};
 /**
- * Function getStartEndTimes определяет время начала и конца для новых событий, созданных из плюсика. Берет все символы после второго символа тире.
+ * Function getStartEndTimes определяет время начала и конца для новых событий, созданных из плюсика и дату и время для режима просмотра/редактирования. Берет все символы после второго символа тире.
  * @returns {string} Строка заголовка.
  */
 		let getStartEndTimes = () => {
-			if ( this.props.parent.props.routeParams.data ) {
+			if ( eventmode === "make/:data" ) {
 				const str = this.props.parent.props.routeParams.data;
 				let timeslot = str.substr( str.lastIndexOf('-') + 1 );
 				let StartEndTimes = {};
 				StartEndTimes.start = timeslot + ':00';
 				StartEndTimes.end = (+timeslot + 1) + ':00'
 				if (timeslot) {return StartEndTimes} else {return null } ;
-			} else { // добавить чтение из события если режим события
+			} else if ( eventmode === "event" ) { // добавить чтение из события если режим события
+				let StartEndTimes = {};
+				StartEndTimes.start = moment(this.props.data.event.dateStart).utc().format( 'HH:MM' );
+				StartEndTimes.end = moment(this.props.data.event.dateEnd).utc().format( 'HH:MM' );
+				return StartEndTimes;
+			} else {
 				return null;
 			}
 			
 		};
+console.log( 'getStartEndTimes', getStartEndTimes() );
 /**
  * Function startTime возвращает строку для подстановки в инпут "время начала"
  * @returns {string}
