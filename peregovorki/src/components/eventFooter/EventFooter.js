@@ -4,7 +4,6 @@ import {Link} from 'react-router';
 
 export default class EventFooter extends Component {
 	render() {
-		console.log( this.props.isDisabled );
 		// команды
 		let saveHandler = this.props.saveHandler;
 		let deleteHandler = this.props.deleteHandler;
