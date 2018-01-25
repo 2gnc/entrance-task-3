@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import Timeslot from "../timeslot/Timeslot";
-//import EventInline from "../eventInline/EventInline";
 import $ from 'jquery';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -25,7 +24,7 @@ class ScheduleDay extends Component {
 		});
 	}
 	
-	componentDidUpdate() { //TODO не выводить плюсы для слотов в прошлом
+	componentDidUpdate() { 
 		let allEvents = this.getEvents();
 		let todayEvents = this.getTodayEvents(allEvents);
 		let nodesAndInners = this.pasteInners( this.getNodes(todayEvents) );
@@ -34,8 +33,11 @@ class ScheduleDay extends Component {
 		this.addEvents( todayEvents );
 		this.addButtons();
 	}
-	addButtons() {
-		let empty = 	$('.schedule__innerslot--empty');
+/**
+ * Function addButtons добавляет кнопки с плюсиками в пустые слоты. Добавление происходит только если отображаемый день не в прошлом в рамках дня, и если время, соответствующее таймслоту не раньше чем текущее время в часах + 1 час 
+ */
+	addButtons() { //TODO оптимизировать через document.fragment
+		let empty = $('.schedule__innerslot--empty');
 		for (let i = 0; i < empty.length; i++ ) {
 			let date = this.props.dayToDisplay.format('YYYYMMDD');
 			let room = $(empty[i]).parent().attr( 'data-room' );
@@ -46,11 +48,18 @@ class ScheduleDay extends Component {
 					return '';
 				}
 			};
-			$(empty[i]).append(
-				'<a href="/make/' + date + '-' + room + '-' + time() + '"><div class="btn btn--newevent">+</div></a>' //TODO тут получать ID комнаты, время начала и время окончания
-			);
+			if ( !this.props.dayToDisplay.isBefore( moment(), 'day' ) ) {
+				if ( !moment(this.props.dayToDisplay.format( 'YYYYMMDD' ) + 'T' + (($(empty[i]).parents( '.schedule__timeslot' ).attr( 'data-time' ).length === 1)? '0': '') + $(empty[i]).parents( '.schedule__timeslot' ).attr( 'data-time' ) ).isBefore( moment().add(1, 'hour' ), 'hour' ) ) {
+					$(empty[i]).append(
+						'<a href="/make/' + date + '-' + room + '-' + time() + '"><div class="btn btn--newevent">+</div></a>' 
+					);
+				}
+			}
 		}
 	};
+/** 
+ * Function addEvents добавляет тултипы к занятым событиям
+ */
 	addEvents(todayEvents) {
 		for ( let i = 0; i < todayEvents.length; i++ ) {
 			let width = todayEvents[i].eventDuration / 5;
@@ -65,7 +74,7 @@ class ScheduleDay extends Component {
 			let eventId = todayEvents[i].eventId;
 			let eventTitle = todayEvents[i].eventTitle; // название события
 			let firstUser = todayEvents[i].eventUsers[0]; // первый пользователь для отображения (ID)
-			let numberOfUsers = todayEvents[i].eventUsers.length; // количество пользователей
+			let numberOfUsers = todayEvents[i].eventUsers.length - 1; // количество пользователей для отображения в тултипе
 			let firstUserName = () => {
 				for (let i = 0; i < allusers.length; i++ ) {
 					if ( allusers[i].id === firstUser ) { return allusers[i].login; }
@@ -85,11 +94,11 @@ class ScheduleDay extends Component {
 			let getRightWord = ( num ) => {
 				if ( num === 1 ) {
 					return 'участник';
-				}
-				else if ( [ 2, 3, 4 ].indexOf ( num ) !== 1 ) {
+				} else if ( num === 0 ) {
+					return 'участников';
+				} else if ( [ 2, 3, 4 ].indexOf ( num ) !== 1 ) {
 					return 'участника';
-				}
-				else {
+				} else {
 					return 'участников';
 				}
 			};
@@ -328,28 +337,28 @@ class ScheduleDay extends Component {
  * @param {number} duration длительность события в минутах
  * @return {Array} массив с номерами слотов
  */
-			let getEventSlots = ( startSlot, duration ) => {
-				let slots = [];
-				
-				if ( duration < 60 && startTime.format ( 'H' ) === endTime.format ( 'H' ) ) {
-					slots.push ( startSlot );
-				} else if ( duration < 60 && startTime.format ( 'H' ) !== endTime.format ( 'H' ) ) {
-					slots.push ( startSlot, startSlot + 1 );
-				} else if ( duration === 60 && startTime.format ( 'mm' ) === '00' ) {
-					slots.push ( startSlot );
-				} else if ( duration >= 60 ) {
-					while ( duration >= 0 ) {
-						slots.push ( startSlot + count );
-						count ++;
-						duration -= 60;
-					}
-				} else {
-				
-				}
-				
-				return slots;
-			};
-			let eventSlots = getEventSlots ( startSlot, duration );
+	let getEventSlots = ( startSlot, duration ) => {
+		let slots = [];
+		
+		if ( duration < 60 && startTime.format ( 'H' ) === endTime.format ( 'H' ) ) {
+			slots.push ( startSlot );
+		} else if ( duration < 60 && startTime.format ( 'H' ) !== endTime.format ( 'H' ) ) {
+			slots.push ( startSlot, startSlot + 1 );
+		} else if ( duration === 60 && startTime.format ( 'mm' ) === '00' ) {
+			slots.push ( startSlot );
+		} else if ( duration >= 60 ) {
+			while ( duration >= 0 ) {
+				slots.push ( startSlot + count );
+				count ++;
+				duration -= 60;
+			}
+		} else {
+		
+		}
+		
+		return slots;
+	};
+	let eventSlots = getEventSlots ( startSlot, duration );
 /**
  * Function getSlotInners Для каждого слота формирует внутренние занятые слоты
  * @param {array} slots Массив занятых слотов
@@ -364,83 +373,83 @@ class ScheduleDay extends Component {
  * Function getBeginInterval возвращает номер интервала, с которого начинается внутренний слот
  * @return {number}
  */
-					let getBeginInterval = () => {
-						if ( +begin.format ( 'HH' ) === itm ) {
-							if ( Math.ceil ( begin.format ( 'mm' ) / 5 ) === 0 ) {
-								return 1;
-							} else {
-								return Math.ceil ( begin.format ( 'mm' ) / 5 +1 );
-							}
-						} else {
-							return 1;
-						}
-					};
+	let getBeginInterval = () => {
+		if ( +begin.format ( 'HH' ) === itm ) {
+			if ( Math.ceil ( begin.format ( 'mm' ) / 5 ) === 0 ) {
+				return 1;
+			} else {
+				return Math.ceil ( begin.format ( 'mm' ) / 5 +1 );
+			}
+		} else {
+			return 1;
+		}
+	};
 /**
  * Function getIntervalWidth возвращает ширину иннер слота в интервалах (ширина может быть от 1 до 12 включительно), в зависимости от позиции слота-родителя (является ли он серединой, началом или концом события)
  * @return {number}
  */
-					let getIntervalWidth = ( startInterval ) => {
-						let endInterval = Math.round( end.format ( 'mm' ) / 5 );
-						let begHour = +begin.format ( 'HH' );
-						let endHour = +end.format ( 'HH' );
-						
-						if ( dur === 60 && begHour === itm && startInterval === 1 ) {// это полный час с начала часа
-							//console.log(1);
-							return 12
-						} else if ( dur === 60 && begHour === itm && startInterval > 1 ) { // это полный час, голова
-							//console.log(2);
-							return 12 - startInterval + 1;
-						} else if ( dur === 60 && begHour < itm ) {// это полный час, хвост
-							//console.log(3);
-							return endInterval;
-						} else if ( dur < 60 && begHour === itm && startInterval === 1 ) {// это меньше часа, на один слот, с начала часа
-							//console.log(4);
-							return endInterval;
-						} else if ( dur < 60 && begHour === itm &&  startInterval > 1 && endHour === itm ) { //это меньше часа на один слот, не с начала часа
-							//console.log(5);
-							return 12 - endInterval - startInterval + 1;
-						} else if ( dur < 60 && begHour === itm && endHour > itm ) {//это меньше часа на два слота, голова
-							//console.log(6);
-							return 12 - startInterval - 1;
-						} else if ( dur < 60 && begHour < itm && endHour === itm ) {//это меньше часа на два слота, хвост
-							//console.log(7);
-							return endInterval;
-						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour === itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (голова)
-							//console.log(8);
-							return 12;
-						} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour < itm && dur < 63) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (хвост) равно 0
-							//console.log(9);
-							return endInterval;
-						} else if ( dur >= 63 && begHour === itm && startInterval === 1 ) { // событие больше часа, это голова, начало с начала часа
-							//console.log(10);
-							return 12;
-						} else if ( dur >= 63 && begHour === itm && startInterval > 1 ) {// событие больше часа, это голова, начало с середины часа
-							//console.log(11);
-							return 12 - startInterval + 1;
-						} else if ( dur >= 63 && begHour < itm && endHour > itm ) {// событие больше часа, это тело
-							//console.log(12);
-							return 12;
-						} else {// событие больше часа, это хвост
-							//console.log(13);
-							return endInterval;
-						}
-					};
-					
-					let getCss = () => {
-						let modifier = '';
-						if ( getIntervalWidth ( getBeginInterval() ) === 12 ) {
-							modifier = 12;
-						} else if ( getEnding () === true ) {
-							modifier = getIntervalWidth ( getBeginInterval() ) + 'r';
-						} else {
-							modifier = getIntervalWidth ( getBeginInterval() );
-						}
-						return 'schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + modifier;
-					};
-					
-					let getEnding = () => {
-						return ( +end.format ( 'HH' ) === itm );
-					};
+	let getIntervalWidth = ( startInterval ) => {
+		let endInterval = Math.round( end.format ( 'mm' ) / 5 );
+		let begHour = +begin.format ( 'HH' );
+		let endHour = +end.format ( 'HH' );
+		
+		if ( dur === 60 && begHour === itm && startInterval === 1 ) {// это полный час с начала часа
+			//console.log(1);
+			return 12
+		} else if ( dur === 60 && begHour === itm && startInterval > 1 ) { // это полный час, голова
+			//console.log(2);
+			return 12 - startInterval + 1;
+		} else if ( dur === 60 && begHour < itm ) {// это полный час, хвост
+			//console.log(3);
+			return endInterval;
+		} else if ( dur < 60 && begHour === itm && startInterval === 1 ) {// это меньше часа, на один слот, с начала часа
+			//console.log(4);
+			return endInterval;
+		} else if ( dur < 60 && begHour === itm &&  startInterval > 1 && endHour === itm ) { //это меньше часа на один слот, не с начала часа
+			//console.log(5);
+			return 12 - endInterval - startInterval + 1;
+		} else if ( dur < 60 && begHour === itm && endHour > itm ) {//это меньше часа на два слота, голова
+			//console.log(6);
+			return 12 - startInterval - 1;
+		} else if ( dur < 60 && begHour < itm && endHour === itm ) {//это меньше часа на два слота, хвост
+			//console.log(7);
+			return endInterval;
+		} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour === itm ) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (голова)
+			//console.log(8);
+			return 12;
+		} else if ( dur > 60 && endInterval === 0 && startInterval === 1 && begHour < itm && dur < 63) { // частный случай, dur > 60 мин, но начало следующего слота округлено в меньую сторону 61,62 минуты (хвост) равно 0
+			//console.log(9);
+			return endInterval;
+		} else if ( dur >= 63 && begHour === itm && startInterval === 1 ) { // событие больше часа, это голова, начало с начала часа
+			//console.log(10);
+			return 12;
+		} else if ( dur >= 63 && begHour === itm && startInterval > 1 ) {// событие больше часа, это голова, начало с середины часа
+			//console.log(11);
+			return 12 - startInterval + 1;
+		} else if ( dur >= 63 && begHour < itm && endHour > itm ) {// событие больше часа, это тело
+			//console.log(12);
+			return 12;
+		} else {// событие больше часа, это хвост
+			//console.log(13);
+			return endInterval;
+		}
+	};
+	
+	let getCss = () => {
+		let modifier = '';
+		if ( getIntervalWidth ( getBeginInterval() ) === 12 ) {
+			modifier = 12;
+		} else if ( getEnding () === true ) {
+			modifier = getIntervalWidth ( getBeginInterval() ) + 'r';
+		} else {
+			modifier = getIntervalWidth ( getBeginInterval() );
+		}
+		return 'schedule__innerslot schedule__innerslot--busy schedule__innerslot--w' + modifier;
+	};
+	
+	let getEnding = () => {
+		return ( +end.format ( 'HH' ) === itm );
+	};
 /**
  * @typedef {object} Описывает один внутренний занятый слот в рамках одного таймслота (часа) для события. Если событие длится более часа, то задействовано будет больше одного таймслота.
  * @property {string} eventId идентификатор события
@@ -500,10 +509,12 @@ class ScheduleDay extends Component {
 		return todayEvents;
 	}
 	render() {
+		//console.log( moment('20180125T09').format('YYYYMMMMDD HH:mm') );
+
 	let isToday = this.props.dayToDisplay.isSame( moment(), 'day' );
 	let rooms = this.props.rooms;
 	
-	
+	console.log(this.props);
 		function makeSlots() {
 			let now = +moment().format('HH');
 			let arr = [];
