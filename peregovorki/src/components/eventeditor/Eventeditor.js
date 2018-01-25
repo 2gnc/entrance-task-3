@@ -25,17 +25,6 @@ moment.updateLocale('ru', {
 class Eventeditor extends Component {
 	constructor(props) {
 		super (props);
-		this.state = {
-			selectedUsers: [],
-			value: '',
-			userlist: null,
-			loading: false,
-			selectedRoom: '',
-			eventDate: moment(),
-			neweventDate: null,
-			showModal: '',
-			recomendations: [],
-		};
 		
 		this.timer = null;
 		this.errors = '';
@@ -57,6 +46,20 @@ class Eventeditor extends Component {
 		this.changer = this.changer.bind( this );
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
+		this.changerTest = this.changerTest.bind( this );
+
+		this.state = {
+			selectedUsers: [],
+			value: '',
+			userlist: null,
+			loading: false,
+			selectedRoom: '',
+			eventDate: moment(),
+			neweventDate: null,
+			showModal: '',
+			recomendations: [],
+			dateInPicker: moment(),
+		};
 	}
 
 	componentDidMount() {
@@ -73,7 +76,46 @@ class Eventeditor extends Component {
 				this.eventShow( this.eventLoader() );
 			}
 		}, 500);
+
+		setTimeout( () => {
+			if ( this.eventmode === 'new' ) {
+				this.setState({
+					dateInPicker: moment(),
+				})
+			} else if ( this.eventmode === 'event' ) {
+				this.setState({
+					dateInPicker: moment( this.props.data.event.dateStart ),
+				})
+			} else if ( this.eventmode === 'make/:data' ) {
+				this.setState({
+					dateInPicker: moment( /^\d{8}/.exec( this.props.parent.props.routeParams.data )[0] ),
+				})
+			} else {
+				return null;
+			}
+		}, 100);
 	}
+
+// test
+	changerTest( dd, i, y ) {
+		console.log( 'changerTest', dd );
+		if ( this.eventmode === 'new' ) {
+			this.setState({
+				dateInPicker: dd,
+			})
+		} else if ( this.eventmode === 'event' ) {
+			this.setState({
+				dateInPicker: dd,
+			})
+		} else if ( this.eventmode === 'make/:data' ) {
+			this.setState({
+				dateInPicker: dd,
+			})
+		} else {
+			return null;
+		}
+	}
+
 /**
  * Function changer() Записывает в стейт новые значения для последующего изменения
  */
@@ -370,8 +412,15 @@ class Eventeditor extends Component {
 		if(!this.state.userlist) {
 			this.state.userlist = this.props.data.users;
 		}
+console.log( this.props );
+		// let test_eventDate = (this.eventmode === 'event')? this.props.data.event.dateStart : null ;
+		// let test__makeDate = (this.eventmode === 'make/:data')? /^\d{8}/.exec( this.props.parent.props.routeParams.data )[0] : null;
+		// let test__neweventDate = (this.eventmode === 'new')? moment() : null;
+		// let test__changedDate = '';
 
-		console.log(this);
+		// console.log( 'test_eventDate', test_eventDate, 'test__makeDate', test__makeDate, 'test__neweventDate', test__neweventDate, 'test__changedDate', test__changedDate);
+
+
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -388,31 +437,31 @@ class Eventeditor extends Component {
 			}
 		};
 
-/**
- * Function dateForInput определяет, какую дату поставить в датапикер. 
- * @returns {*|moment.Moment} 
- */
-		let dateForInput = () => {
-			if ( this.eventmode === 'new' ) {
-				return this.state.eventDate;
-			} else if ( this.eventmode === 'make/:data' ) {
-				let mask = /^\d{8}/;
-				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
-				if ( this.state.neweventDate === null ) {
-					return moment(date);
-				} else {
-					return this.state.neweventDate;
-				}
+// /**
+//  * Function dateForInput определяет, какую дату поставить в датапикер. 
+//  * @returns {*|moment.Moment} 
+//  */
+// 		let dateForInput = () => {
+// 			if ( this.eventmode === 'new' ) {
+// 				return this.state.eventDate;
+// 			} else if ( this.eventmode === 'make/:data' ) {
+// 				let mask = /^\d{8}/;
+// 				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
+// 				if ( this.state.neweventDate === null ) {
+// 					return moment(date);
+// 				} else {
+// 					return this.state.neweventDate;
+// 				}
 				
-			} else {
-				if( this.state.neweventDate === null ) {
-					console.log( moment(this.props.data.event.dateStart) );
-					return moment(this.props.data.event.dateStart);
-				} else {
-					return this.state.neweventDate;
-				}
-			}
-		};
+// 			} else {
+// 				if( this.state.neweventDate === null ) {
+// 					console.log( moment(this.props.data.event.dateStart) );
+// 					return moment(this.props.data.event.dateStart);
+// 				} else {
+// 					return this.state.neweventDate;
+// 				}
+// 			}
+// 		};
 
 
 /**
@@ -447,6 +496,7 @@ class Eventeditor extends Component {
 			return StartEndTimes;
 		};
 
+
 /*
  * @const target //TODO что это?
  * @type {string} 
@@ -479,8 +529,10 @@ class Eventeditor extends Component {
 										<label className='label label--desktop' htmlFor='eventDate'>Дата</label>
 										<label className='label label--touch' htmlFor='eventDate'>Дата и время</label>
 										<DatePicker
-											selected = { dateForInput() }
-											onChange = {this.changer}
+											/*selected = { dateForInput() }*/
+											/*onChange = {this.changer}*/
+											selected = { this.state.dateInPicker }
+											onChange = { this.changerTest }
 											dateFormat="DD MMMM, YYYY"
 											id="eventDate"
 											className="inpt date-time-inpt__date-inpt"
