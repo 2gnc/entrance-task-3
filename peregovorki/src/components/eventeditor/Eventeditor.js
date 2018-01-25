@@ -34,7 +34,6 @@ class Eventeditor extends Component {
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
 		this.selectedRoomUpd = this.selectedRoomUpd.bind( this );
-		//this.handleDateChange = this.handleDateChange.bind( this );
 		this.handleAddUser = this.handleAddUser.bind( this );
 		this.handleRemoveUser = this.handleRemoveUser.bind( this );
 		this.saveEvent = this.saveEvent.bind( this );
@@ -54,7 +53,6 @@ class Eventeditor extends Component {
 			userlist: null,
 			loading: false,
 			selectedRoom: '',
-			eventDate: moment(),
 			neweventDate: null,
 			showModal: '',
 			recomendations: [],
@@ -81,23 +79,29 @@ class Eventeditor extends Component {
 			if ( this.eventmode === 'new' ) {
 				this.setState({
 					dateInPicker: moment(),
+					userlist: this.props.data.users,
 				})
 			} else if ( this.eventmode === 'event' ) {
 				this.setState({
 					dateInPicker: moment( this.props.data.event.dateStart ),
+					userlist: this.props.data.users,
 				})
 			} else if ( this.eventmode === 'make/:data' ) {
 				this.setState({
 					dateInPicker: moment( /^\d{8}/.exec( this.props.parent.props.routeParams.data )[0] ),
+					userlist: this.props.data.users,
 				})
 			} else {
 				return null;
 			}
-		}, 100);
+		}, 300);
 	}
 
-// test
-	changerTest( dd, i, y ) {
+/**
+ * Function changerTest обрабатывает изменения в datepicker-e
+ * @param {*|moment()} dd выбранная дата 
+ */
+	changerTest( dd ) {
 		console.log( 'changerTest', dd );
 		if ( this.eventmode === 'new' ) {
 			this.setState({
@@ -117,22 +121,10 @@ class Eventeditor extends Component {
 	}
 
 /**
- * Function changer() Записывает в стейт новые значения для последующего изменения
+ * Function changer запускает получение рекомендаций
  */
-	changer( date ) {
-		// вызвать рекомендации
+	changer() {
 		this.getRecomendation();
-		if ( this.eventmode === 'new' ) {
-			this.state.eventDate = date;
-			this.state.neweventDate = date;
-		} else if ( this.eventmode === 'event' ) {
-			this.state.neweventDate = date;
-		} else if ( this.eventmode === 'make/:data' ) {
-			this.state.eventDate = date;
-			this.state.neweventDate = date;
-		} else {
-			return null;
-		}
 		console.log( 'changer', this );
 	}
 
@@ -163,7 +155,7 @@ class Eventeditor extends Component {
 				for ( let i = 0; i < usersIds.length; i ++ ) {
 					if( usersIds[i] === item.id ) { x = item }
 				}
-				if ( x ) { return x } else {return}
+				if ( x ) { return x } else {return null}
 			}).filter( (val) => {
 				return val;
 			});
@@ -236,9 +228,9 @@ class Eventeditor extends Component {
 		let users = $( '#eventUsersInpt' );
 		let date = $( '#eventDate' );
 		let startInpt = $( '#timeStart' );
-		let startTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + startInpt.val();
+		let startTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + startInpt.val();
 		let endInpt = $( '#timeEnd' );
-		let endTime = this.state.eventDate.format('YYYY-MM-DD') + 'T' + endInpt.val();
+		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val();
 		
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
 		this.eventInfo = '';
@@ -251,7 +243,7 @@ class Eventeditor extends Component {
 			errors.push( 'мало участников' );
 			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
-		if ( this.props.parent.props.routeParams.eventid === 'new' &&  this.state.eventDate.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
+		if ( this.props.parent.props.routeParams.eventid === 'new' &&  this.state.dateInPicker.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
@@ -326,7 +318,7 @@ class Eventeditor extends Component {
 					showModal: 'error',
 				});
 			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок наъдится в recomendations, а занятость участников не проверяется)
-				this.eventInfo = this.state.eventDate.format( 'DD MMMM YYYY' ) +
+				this.eventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) +
 					', ' +
 					$( '#timeStart' ).val() +
 					' - ' +
@@ -408,19 +400,6 @@ class Eventeditor extends Component {
 			return ( this.eventmode === 'event' && moment(this.props.data.event.dateStart).isBefore( moment(), 'hour' ) )? ( true ) : ( false );
 		};
 
-		
-		if(!this.state.userlist) {
-			this.state.userlist = this.props.data.users;
-		}
-console.log( this.props );
-		// let test_eventDate = (this.eventmode === 'event')? this.props.data.event.dateStart : null ;
-		// let test__makeDate = (this.eventmode === 'make/:data')? /^\d{8}/.exec( this.props.parent.props.routeParams.data )[0] : null;
-		// let test__neweventDate = (this.eventmode === 'new')? moment() : null;
-		// let test__changedDate = '';
-
-		// console.log( 'test_eventDate', test_eventDate, 'test__makeDate', test__makeDate, 'test__neweventDate', test__neweventDate, 'test__changedDate', test__changedDate);
-
-
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -436,33 +415,6 @@ console.log( this.props );
 				return null;
 			}
 		};
-
-// /**
-//  * Function dateForInput определяет, какую дату поставить в датапикер. 
-//  * @returns {*|moment.Moment} 
-//  */
-// 		let dateForInput = () => {
-// 			if ( this.eventmode === 'new' ) {
-// 				return this.state.eventDate;
-// 			} else if ( this.eventmode === 'make/:data' ) {
-// 				let mask = /^\d{8}/;
-// 				let date = mask.exec( this.props.parent.props.routeParams.data )[0];
-// 				if ( this.state.neweventDate === null ) {
-// 					return moment(date);
-// 				} else {
-// 					return this.state.neweventDate;
-// 				}
-				
-// 			} else {
-// 				if( this.state.neweventDate === null ) {
-// 					console.log( moment(this.props.data.event.dateStart) );
-// 					return moment(this.props.data.event.dateStart);
-// 				} else {
-// 					return this.state.neweventDate;
-// 				}
-// 			}
-// 		};
-
 
 /**
  * Function getHeading определяет, какой выводить заголовок.
@@ -495,15 +447,12 @@ console.log( this.props );
 			}
 			return StartEndTimes;
 		};
-
-
 /*
  * @const target //TODO что это?
  * @type {string} 
  */
 		let target;
 		let block = blockInpts();
-
 		return (
 			<div className='App__wrapper'>
 				<Header hasButton = {false} />
@@ -529,9 +478,7 @@ console.log( this.props );
 										<label className='label label--desktop' htmlFor='eventDate'>Дата</label>
 										<label className='label label--touch' htmlFor='eventDate'>Дата и время</label>
 										<DatePicker
-											/*selected = { dateForInput() }*/
-											/*onChange = {this.changer}*/
-											selected = { this.state.dateInPicker }
+											selected = { this.state.dateInPicker || moment() }
 											onChange = { this.changerTest }
 											dateFormat="DD MMMM, YYYY"
 											id="eventDate"
@@ -573,14 +520,15 @@ console.log( this.props );
 							<div className='event__col' >
 								<label className='label' htmlFor='eventUsersInpt'>Участники</label>
 								<Autocomplete
-									inputProps={{	id: 'eventUsersInpt',
+									inputProps={{
+										id: 'eventUsersInpt',
 										className: 'inpt event__text-inpt',
 										placeholder: 'Например, Тор Одинович',
 										disabled: block
 									}}
 									wrapperStyle = {{}}
 									getItemValue={(item) => item.login}
-									items={this.state.userlist}
+									items={ this.state.userlist || [] }
 									renderItem={(item, highlighted) =>
 										<div key={item.id} className={'user user--listed'} style={{ backgroundColor: highlighted ? ' #F6F7F9' : 'transparent'}}>
 											<img className='user__pic' src={item.avatarUrl} alt={item.login + ' avatar'}/>
