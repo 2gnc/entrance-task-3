@@ -580,7 +580,7 @@ class Eventeditor extends Component {
 						</div>
 					</div>
 
-					<EventFooter mode={this.eventmode} saveHandler = {this.saveEvent} deleteHandler = {this.deleteEvent} />
+					<EventFooter mode={this.eventmode} saveHandler = {this.saveEvent} deleteHandler = {this.deleteEvent} isDisabled = { blockInpts() } />
 				</form>
 				{showModal()}
 			</div>
