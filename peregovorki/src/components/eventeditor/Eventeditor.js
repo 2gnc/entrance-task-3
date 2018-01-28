@@ -97,7 +97,7 @@ class Eventeditor extends Component {
 			}
 		}, 300);
 	}
-	isPast() {
+	isPast() { //TODO сделать с точностью до минуты
 		return this.state.dateInPicker.isBefore( moment(), 'day' );
 	};
 /**
