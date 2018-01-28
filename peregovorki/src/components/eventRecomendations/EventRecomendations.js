@@ -15,6 +15,14 @@ class EventRecomendationsEmpty extends Component {
 	}
 
 	componentDidMount() {
+		// если в пропсах пришла выбранная комната, устанавливаем ее в стейт.
+		setTimeout( () => {
+			if ( this.props.selectedRoom ) {
+				this.setState({
+					selectedRoom: this.props.selectedRoom,
+				});
+			}
+		}, 500 );
 /** 
  * Fucntion setClicksHandler устанавливает обработчики событий на блоки с рекомендацией. Устанавливает отсрочку, чтобы <Rom/> усплели подгрузиться.
  */
@@ -36,7 +44,10 @@ class EventRecomendationsEmpty extends Component {
 				});
 			});
 		};
-		setTimeout( setClicksHandler , 200 );
+		if ( this.props.isPast ) {
+			setTimeout( setClicksHandler , 200 );
+		}
+		
 	}
 	
 	render() {

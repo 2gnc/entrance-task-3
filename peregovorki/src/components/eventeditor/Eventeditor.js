@@ -452,6 +452,7 @@ class Eventeditor extends Component {
  * @type {string} 
  */
 		let target;
+		console.log( target );
 		let block = blockInpts();
 		return (
 			<div className='App__wrapper'>
