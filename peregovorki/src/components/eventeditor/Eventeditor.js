@@ -46,6 +46,7 @@ class Eventeditor extends Component {
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
 		this.changerTest = this.changerTest.bind( this );
+		this.isPast = this.isPast.bind( this );
 
 		this.state = {
 			selectedUsers: [],
@@ -96,7 +97,9 @@ class Eventeditor extends Component {
 			}
 		}, 300);
 	}
-
+	isPast() {
+		return this.state.dateInPicker.isBefore( moment(), 'day' );
+	};
 /**
  * Function changerTest обрабатывает изменения в datepicker-e
  * @param {*|moment()} dd выбранная дата 
@@ -176,6 +179,7 @@ class Eventeditor extends Component {
  * @param {object} eventObj Результат выполнения eventLoader()
  */
 	eventShow( loader ) {
+		console.log( loader );
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
@@ -197,6 +201,12 @@ class Eventeditor extends Component {
 			// заполняем время
 			timeStartInpt.val( loader.startTime );
 			timeEndInpt.val( loader.endTime );
+			// записываем комнату
+			if( loader.room ) {
+				this.setState({
+					selectedRoom: loader.room,
+				});
+			}
 		}
 	}
 /**
@@ -448,11 +458,10 @@ class Eventeditor extends Component {
 			return StartEndTimes;
 		};
 /*
- * @const target //TODO что это?
+ * @const target будет использовано в скрипте автокомплита.
  * @type {string} 
  */
 		let target;
-		console.log( target );
 		let block = blockInpts();
 		return (
 			<div className='App__wrapper'>
@@ -566,7 +575,7 @@ class Eventeditor extends Component {
 										let usrname = value;
 										
 										this.state.userlist.forEach((item) => {
-											if (item.login === usrname ) {target=item}
+											if (item.login === usrname ) {target = item}
 										});
 										if ( this.state.selectedUsers.indexOf( target ) === -1 ) {
 											this.handleAddUser( target );
@@ -577,7 +586,7 @@ class Eventeditor extends Component {
 								<EventParticipants users = {this.state} parent = {this} blockInpts = { blockInpts() } />
 							</div>
 							<div className='event__separator'></div>
-							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} />
+							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} isPast = { this.isPast() } />
 						</div>
 					</div>
 
