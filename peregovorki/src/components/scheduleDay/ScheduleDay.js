@@ -509,12 +509,10 @@ class ScheduleDay extends Component {
 		return todayEvents;
 	}
 	render() {
-		//console.log( moment('20180125T09').format('YYYYMMMMDD HH:mm') );
 
 	let isToday = this.props.dayToDisplay.isSame( moment(), 'day' );
 	let rooms = this.props.rooms;
-	
-	console.log(this.props);
+		
 		function makeSlots() {
 			let now = +moment().format('HH');
 			let arr = [];
