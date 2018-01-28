@@ -22,6 +22,9 @@ class EventRecomendationsEmpty extends Component {
 					selectedRoom: this.props.selectedRoom,
 				});
 			}
+			if ( !this.props.isPast ) {
+				setTimeout( setClicksHandler , 200 );
+			}
 		}, 500 );
 /** 
  * Fucntion setClicksHandler устанавливает обработчики событий на блоки с рекомендацией. Устанавливает отсрочку, чтобы <Rom/> усплели подгрузиться.
@@ -44,14 +47,10 @@ class EventRecomendationsEmpty extends Component {
 				});
 			});
 		};
-		if ( this.props.isPast ) {
-			setTimeout( setClicksHandler , 200 );
-		}
-		
 	}
 	
 	render() {
-		
+		console.log( this.props.isPast );
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
