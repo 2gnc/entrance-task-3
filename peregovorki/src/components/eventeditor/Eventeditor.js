@@ -314,7 +314,27 @@ class Eventeditor extends Component {
 * @parpam {object} e Событие клика на кнопку "Сохранить"
 */
 	saveEvent(e) { // TODO будет использоваться как для новых событий так и при редактировании
+		console.log( 'save clicked' );
 		e.preventDefault();
+		
+		if ( this.eventmode === 'event' ) {//TODO не возвращаеются ошибки
+			// запускаем валидацию, получаем или список параметров встречи или список ошибок
+			let parameters = this.validation();
+			console.log( 'parameters', parameters, 'errors', this.errors );
+			
+			if( this.errors.length > 0 ) { // если ошибка валидации - показываем модальное окно с ошибкой
+				this.setState({
+					showModal: 'error',
+				});
+			} else { //ошибок валидации нет
+				// запускаем мутацию updateEvent
+				// запускаем мутацию removeUsersFromEvent или addUsersToEvent ( если удалялись или добавлялись пользователи )
+				// changeEventRoom ( если менялась комната )
+				this.setState({ // обнуляем указание на модальное окно
+					showModal: '',
+				});
+			}
+		}
 		
 		if ( this.props.parent.props.routeParams.eventid === 'new' || this.props.parent.props.route.path ===  'make/:data' ) { // если сохраняем новое событие
 /**
@@ -327,7 +347,7 @@ class Eventeditor extends Component {
 				this.setState({
 					showModal: 'error',
 				});
-			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок наъдится в recomendations, а занятость участников не проверяется)
+			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок находится в recomendations, а занятость участников не проверяется)
 				this.eventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) +
 					', ' +
 					$( '#timeStart' ).val() +

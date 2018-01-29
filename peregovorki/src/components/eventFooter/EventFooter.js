@@ -18,7 +18,7 @@ export default class EventFooter extends Component {
 		} else if ( this.props.mode === 'event' ) {
 			buttons.push( <Link to = '/' key = '1'><Button modificator = 'btn--grey' command = 'Отмена' /></Link>);
 			buttons.push( <Button modificator = 'btn--grey' command = 'Удалить встречу' key = '3' clickHandler={deleteHandler} isDisabled = {this.props.isDisabled} />);
-			buttons.push( <Button modificator = '' command = 'Сохранить' key = '2' isDisabled = {this.props.isDisabled} /> );
+			buttons.push( <Button modificator = '' command = 'Сохранить' key = '2' clickHandler={saveHandler} isDisabled = {this.props.isDisabled} /> );
 			modifier = 'event__buttons event__buttons--three event__buttons--desktop';
 		} else {
 			return null
