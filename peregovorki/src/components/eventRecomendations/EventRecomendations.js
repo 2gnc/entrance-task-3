@@ -53,7 +53,6 @@ class EventRecomendationsEmpty extends Component {
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
-		console.log( 'это в прошлом', this.props.isPast );
 		if(!this.props.data.rooms) {
 			return null;
 		}

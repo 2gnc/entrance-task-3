@@ -30,6 +30,7 @@ class Eventeditor extends Component {
 		this.errors = '';
 		this.roomInfo = '';
 		this.eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
+		this.initialEventUsers = [];
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -73,6 +74,7 @@ class Eventeditor extends Component {
 			if ( this.props.eventToDownload ) {
 				this.eventShow( this.eventLoader() );
 			}
+			
 		}, 500);
 
 		setTimeout( () => {
@@ -175,7 +177,7 @@ class Eventeditor extends Component {
  * @param {object} eventObj Результат выполнения eventLoader()
  */
 	eventShow( loader ) {
-		console.log( loader );
+		console.log( 'данные о событии', loader );
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
@@ -189,7 +191,7 @@ class Eventeditor extends Component {
 				DateInpt.val( loader.date);
 			}
 			// заполняем пользователей
-			if ( this.state.selectedUsers.length === 0 ) { 
+			if ( this.state.selectedUsers.length === 0 ) {
 				this.setState({
 					selectedUsers: loader.participants,
 				});
@@ -249,9 +251,13 @@ class Eventeditor extends Component {
 			errors.push( 'мало участников' );
 			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
-		if ( this.props.parent.props.routeParams.eventid === 'new' &&  this.state.dateInPicker.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
+		if ( this.eventmode !== 'event' &&  this.state.dateInPicker.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
+		}
+		if ( this.eventmode === 'event' ) { // дата в прошлом для режима event
+			let dateTimeWanted = this.state.dateInPicker;
+			console.log( 'validation', dateTimeWanted, typeof( dateTimeWanted ) );
 		}
 		if ( !moment(startTime).isBefore( endTime, 'minute' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
 			errors.push( 'неверно указано время' ); //TODO проверять дилтельнось события не короче 5 минут
@@ -331,7 +337,7 @@ class Eventeditor extends Component {
 				});
 			}
 		}
-		
+		// конец для режима event
 		if ( this.props.parent.props.routeParams.eventid === 'new' || this.props.parent.props.route.path ===  'make/:data' ) { // если сохраняем новое событие
 /**
  * @const parameters Набор параметров события для сохранения в БД
@@ -421,10 +427,19 @@ class Eventeditor extends Component {
 		if(!this.props.data.users) {
 			return null;
 		}
-
+/**
+ * Function blockInpts определяет, находится ли время начала события в прошлом относительно текущего момента времени
+ * @return {boolean}
+ */
 		let blockInpts = () => {
 			return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
 		};
+/**
+ * Заполняем изначальных участников для режима event
+ */
+		if ( this.eventmode === 'event' && this.initialEventUsers.length === 0 ) {
+			this.initialEventUsers = this.eventLoader().participants;
+		}
 
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
@@ -441,7 +456,7 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
-console.log( this.state );
+console.log( this.initialEventUsers, this.state );
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
