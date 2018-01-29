@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Schedule from './../schedule/Schedule'
+import Schedule from './../schedule/Schedule';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 

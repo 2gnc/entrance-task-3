@@ -325,11 +325,11 @@ class ScheduleDay extends Component {
 	getEvents() {
 		let testEvent = this.props.data.events;
 		let x = testEvent.map(( item, i ) => {
-			let startSlot = +moment ( item.dateStart ).utcOffset ( 0 ).format ( 'H' );
-			let startTime = moment ( item.dateStart ).utcOffset ( 0 );
-			let endTime = moment ( item.dateEnd ).utcOffset ( 0 );
+			let startSlot = +moment ( item.dateStart ).utc().format ( 'H' );
+			let startTime = moment ( item.dateStart ).utc();
+			let endTime = moment ( item.dateEnd ).utc();
 			let duration = Math.floor ( ( moment ( item.dateEnd ) - moment ( item.dateStart ) ) / 60000 ); // в минутах
-			let eventId = item.id
+			let eventId = item.id;
 			let count = 0;
 /**
  * Function getEventSlots возвращает массив номеров таймслотов, которые заняты данным событием.
@@ -502,7 +502,7 @@ class ScheduleDay extends Component {
 
 		let todayEvents = [];
 		events.forEach( ( item, i ) => {
-			if ( item.eventStart.isSame( this.props.dayToDisplay, 'day' ) ) {
+			if ( item.eventStart.utc().isSame( this.props.dayToDisplay, 'day' ) ) {
 				todayEvents.push( item );
 			}
 		});
