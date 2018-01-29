@@ -427,7 +427,7 @@ class Eventeditor extends Component {
 		}
 
 		let blockInpts = () => {
-			return ( this.eventmode === 'event' && moment(this.props.data.event.dateStart).isBefore( moment(), 'hour' ) )? ( true ) : ( false );
+			return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
 		};
 
 /**

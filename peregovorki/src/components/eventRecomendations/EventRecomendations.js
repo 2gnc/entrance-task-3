@@ -50,7 +50,6 @@ class EventRecomendationsEmpty extends Component {
 	}
 	
 	render() {
-		console.log( this.props.isPast );
 		/*Заглушка
 		* тут будем получать массив подходящих на дату-время комнат
 		* */
