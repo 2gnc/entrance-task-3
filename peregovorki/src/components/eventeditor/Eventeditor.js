@@ -31,6 +31,8 @@ class Eventeditor extends Component {
 		this.roomInfo = '';
 		this.eventmode = (this.props.parent.props.routeParams.eventid || this.props.parent.props.route.path);
 		this.initialEventUsers = [];
+		this.initialEventRoom = '';
+		this.initialEventInfo = '';
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -85,7 +87,7 @@ class Eventeditor extends Component {
 				})
 			} else if ( this.eventmode === 'event' ) {
 				this.setState({
-					dateInPicker: moment( this.props.data.event.dateStart ),
+					dateInPicker: moment( this.props.data.event.dateStart ).utc(),
 					userlist: this.props.data.users,
 				})
 			} else if ( this.eventmode === 'make/:data' ) {
@@ -161,7 +163,7 @@ class Eventeditor extends Component {
 				return val;
 			});
 			obj.dateMoment = this.props.data.event.dateStart;
-			obj.date = moment( this.props.data.event.dateStart ).format( 'DD MMMM, YYYY' );
+			obj.date = moment( this.props.data.event.dateStart ).utc().format( 'DD MMMM, YYYY' );
 			obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'HH:mm' ); 
 			obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'HH:mm' ); 
 			obj.room = String( this.props.data.event.room.id );
@@ -255,9 +257,11 @@ class Eventeditor extends Component {
 			errors.push( 'дата события в прошлом' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 		}
-		if ( this.eventmode === 'event' ) { // дата в прошлом для режима event
-			let dateTimeWanted = this.state.dateInPicker;
-			console.log( 'validation', dateTimeWanted, typeof( dateTimeWanted ) );
+		if ( this.eventmode === 'event' && moment(startTime).utc().isBefore( moment().utc(), 'minute' ) ) { // дата в прошлом для режима event с точностью до минуты
+			errors.push( 'вы пытаетесь перенести событие в прошлое' );
+			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
+			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
+			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
 		if ( !moment(startTime).isBefore( endTime, 'minute' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
 			errors.push( 'неверно указано время' ); //TODO проверять дилтельнось события не короче 5 минут
@@ -329,10 +333,42 @@ class Eventeditor extends Component {
 					showModal: 'error',
 				});
 			} else { //ошибок валидации нет
-				// запускаем мутацию updateEvent
-				// запускаем мутацию removeUsersFromEvent или addUsersToEvent ( если удалялись или добавлялись пользователи )
+				// выбираем добавленных пользователей ( что есть в "стало", чего нет в "было" )
+				let addedUsers = this.state.selectedUsers.filter( ( el ) => {
+					return this.initialEventUsers.indexOf( el ) === -1;
+				} );
+				// выбираем удаленных пользователей ( что есть в "было", чего нет в "стало" )
+				let deletedUsers = this.initialEventUsers.filter( ( el ) => {
+					return this.state.selectedUsers.indexOf( el ) === -1;
+				} );
+				console.log( 'добавлены пользователи', addedUsers, 'удалены пользователи', deletedUsers );
+				// определяем, изменилась ли комната
+				let roomHasChanged = this.initialEventRoom !== this.state.selectedRoom;
+				console.log( 'комната изменилась', roomHasChanged );
+				// определяем, менялись ли параметры события title, dateStart, dateEnd
+				let newEventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) + ', ' + $( '#timeStart' ).val() + ' - ' + $( '#timeEnd' ).val();
+				let eventHasChanged = this.initialEventInfo === newEventInfo;
+				console.log( eventHasChanged );
+				
+				// запускаем мутацию updateEvent если менялись параметры события
+				if ( eventHasChanged ) {
+					console.log( 'updateEvent' );
+				}
+				// запускаем мутацию removeUsersFromEvent если есть удаленные
+				if ( deletedUsers.length ) {
+					console.log( 'removeUsersFromEvent' );
+				}
+				// запускаем мутацию addUsersToEvent если есть добавленные
+				if ( addedUsers.length ) {
+					console.log( 'addUsersToEvent' );
+				}
 				// changeEventRoom ( если менялась комната )
-				this.setState({ // обнуляем указание на модальное окно
+				if ( roomHasChanged ) {
+					console.log( 'changeEventRoom' );
+				}
+				
+				// обнуляем указание на модальное окно
+				this.setState({
 					showModal: '',
 				});
 			}
@@ -440,6 +476,20 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'event' && this.initialEventUsers.length === 0 ) {
 			this.initialEventUsers = this.eventLoader().participants;
 		}
+/**
+ * заполняем изначальную комнату
+ */
+		if ( this.eventmode === 'event' && this.initialEventRoom === '' ) {
+			this.initialEventRoom = this.eventLoader().room;
+		}
+/**
+ * Заполняем изначальную информацию о встрече
+ */
+// формат, this.state.dateInPicker.format( 'DD MMMM YYYY' ) + ', ' + $( '#timeStart' ).val() + ' - ' + $( '#timeEnd' ).val();
+		if ( this.eventmode === 'event' && this.initialEventInfo === '' ) {
+			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime;
+		}
+		
 
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
@@ -456,7 +506,7 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
-console.log( this.initialEventUsers, this.state );
+console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
