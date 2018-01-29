@@ -251,7 +251,7 @@ class Eventeditor extends Component {
  * Function validation проверяет поля формы и возвращает или найденные ошибки или параметры события
  * @returns {array||object}
  */
-	validation() { //TODO добавить уловия проверки для редактирования события
+	validation() {
 		
 		let errors = [];
 		let theme = $( '#eventTheme' );
@@ -283,8 +283,8 @@ class Eventeditor extends Component {
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
-		if ( !moment(startTime).isBefore( endTime, 'minute' ) ) { // время окончания позже времени начала //TODO проверять время в прошлом
-			errors.push( 'неверно указано время' ); //TODO проверять дилтельнось события не короче 5 минут
+		if ( !moment(startTime).isBefore( endTime, 'minute' ) ) { // время окончания позже времени начала
+			errors.push( 'неверно указано время' ); //TODO проверять длительнось события не короче 5 минут
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
 		}
@@ -339,11 +339,11 @@ class Eventeditor extends Component {
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
 * @parpam {object} e Событие клика на кнопку "Сохранить"
 */
-	saveEvent(e) { // TODO будет использоваться как для новых событий так и при редактировании
+	saveEvent(e) { // TODO запустить мутации
 		console.log( 'save clicked' );
 		e.preventDefault();
 		
-		if ( this.eventmode === 'event' ) {//TODO не возвращаеются ошибки
+		if ( this.eventmode === 'event' ) {
 			// запускаем валидацию, получаем или список параметров встречи или список ошибок
 			let parameters = this.validation();
 			console.log( 'parameters', parameters, 'errors', this.errors );
@@ -443,13 +443,13 @@ class Eventeditor extends Component {
 		}
 	}
 	
-	handleAddUser( user ) { //TODO если это режим редактирования события - вызывать мутацию addUserToEvent
+	handleAddUser( user ) {
 		if ( user ) {
 			this.state.selectedUsers.push(user);
 		}
 	}
 
-	handleRemoveUser( user ) { //TODO если это режим редактирования события - вызывать мутацию removeUserFromEvent
+	handleRemoveUser( user ) {
 		let x;
 		this.state.selectedUsers.map((item, i)=> {
 			if(item.login === user) { x = i } return null;

@@ -36,7 +36,7 @@ class ScheduleDay extends Component {
 /**
  * Function addButtons добавляет кнопки с плюсиками в пустые слоты. Добавление происходит только если отображаемый день не в прошлом в рамках дня, и если время, соответствующее таймслоту не раньше чем текущее время в часах + 1 час 
  */
-	addButtons() { //TODO оптимизировать через document.fragment
+	addButtons() {
 		let empty = $('.schedule__innerslot--empty');
 		for (let i = 0; i < empty.length; i++ ) {
 			let date = this.props.dayToDisplay.format('YYYYMMDD');
