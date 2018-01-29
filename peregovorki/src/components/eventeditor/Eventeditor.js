@@ -213,19 +213,39 @@ class Eventeditor extends Component {
  * Function fixErrors обрабатывает сценарий "справление ошибок формы". Убирает красную рамку с ошибочных полей при фокусе.
  */
 	fixErrors() {
+		let evTheme = $( '#eventTheme' );
+		let evUsers = $( '#eventUsersInpt' );
+		let evDate = $( '#eventDate' );
+		let evStart = $( '#timeStart' );
+		let evEnd = $( '#timeEnd' );
+		
 		this.setState({
 			showModal: '',
 		});
+		
 		let removeBorder = (e) => {
 			if ( $(e.target).hasClass('inpt--error') ) {
 				$(e.target).toggleClass( 'inpt--error' );
 			}
 		};
-		$( '#eventTheme' ).on('focus', removeBorder);
-		$( '#eventUsersInpt' ).on('focus', removeBorder);
-		$( '#eventDate' ).on('focus', removeBorder);
-		$( '#timeStart' ).on('focus', removeBorder);
-		$( '#timeEnd' ).on('focus', removeBorder);
+		
+		let removedatetimeborder = (e) => {
+			if ( evDate.hasClass('inpt--error') ) {
+				evDate.toggleClass( 'inpt--error' );
+			}
+			if ( evStart.hasClass('inpt--error') ) {
+				evStart.toggleClass( 'inpt--error' );
+			}
+			if ( evEnd.hasClass('inpt--error') ) {
+				evEnd.toggleClass( 'inpt--error' );
+			}
+		};
+		
+		evTheme.on('focus', removeBorder);
+		evUsers.on('focus', removeBorder);
+		evDate.on('focus', removedatetimeborder);
+		evStart.on('focus', removedatetimeborder);
+		evEnd.on('focus', removedatetimeborder);
 	}
 /**
  * Function validation проверяет поля формы и возвращает или найденные ошибки или параметры события
