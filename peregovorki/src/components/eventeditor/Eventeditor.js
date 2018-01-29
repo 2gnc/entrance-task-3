@@ -46,7 +46,6 @@ class Eventeditor extends Component {
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
 		this.changerTest = this.changerTest.bind( this );
-		this.isPast = this.isPast.bind( this );
 
 		this.state = {
 			selectedUsers: [],
@@ -97,9 +96,6 @@ class Eventeditor extends Component {
 			}
 		}, 300);
 	}
-	isPast() { //TODO сделать с точностью до минуты
-		return this.state.dateInPicker.isBefore( moment(), 'day' );
-	};
 /**
  * Function changerTest обрабатывает изменения в datepicker-e
  * @param {*|moment()} dd выбранная дата 
@@ -445,7 +441,7 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
-
+console.log( this.state );
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
@@ -606,7 +602,7 @@ class Eventeditor extends Component {
 								<EventParticipants users = {this.state} parent = {this} blockInpts = { blockInpts() } />
 							</div>
 							<div className='event__separator'></div>
-							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} isPast = { this.isPast() } />
+							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} isPast = { blockInpts() } />
 						</div>
 					</div>
 
