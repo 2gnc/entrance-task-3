@@ -100,7 +100,7 @@ class Eventeditor extends Component {
 			} else {
 				return null;
 			}
-		}, 300);
+		}, 400);
 		
 /**
  * Вызываем получение рекомендации (в данном случае будет единственная комната, которую нужно будет отобразить)
@@ -113,7 +113,7 @@ class Eventeditor extends Component {
 			) {
 				this.getRecomendation();
 			}
-		}, 300 );
+		}, 400 );
 		
 	}
 	
@@ -176,81 +176,106 @@ class Eventeditor extends Component {
 		this.getRecomendation( EventDate, this.state.selectedUsers );
 	}
 
-	getRecomendation( date, members ) {
-		let recomendations = [];
-		
-		console.log( 'getRecomendation', date );
-		console.log( 'getRecomendation', members );
-		
-		// выбрать переговорки, подходящие по вместимости
-		// для каждой из них проверить, свободный ли запрашиваемый интервал
-		// сделать массив мешающих эвентов
-		// сделать массив меньших по размерам, но подходящих
-		// сделать массив подходящих и свободных
-		// отсортировать массив подходящих и свободных по удаленности от всех участников
-		// если массив подходящих свободных пустой, можно ли перенести мешающие события в переговорку поменьше
-		// если да, то сгенерировать массив свапов
-		// если свапы есть, добавить в рекомендации комнаты, которые можно освободить
-		// если свапов нет, вывести список переговорок, отсортированных по ближайшей освобождающейся (время окончания)
-		
-		
-/**
- * @typedef {Object} Recommendation
- * @property {EventDate} date Дата и время проведения встречи.
- * @property {String} room Идентификатор переговорки.
- * @property {RoomsSwap[]} [swap] Необходимые замены переговорк для реализации рекомендации.
- */
-		let Recomendation = {
-			date: {},
-			room: '',
-			swap: [],
-		};
+	getRecomendation( date, members ) { //TODO если режим event изначально показывать пустые рекомендации
+		if( date ) {
+			let recomendations = [];
 
-/**
- * @typedef {Object} RoomsSwap
- * @property {string} event Идентификатор встречи.
- * @property {String} room Новый идентификатор переговорки.
- */
-		let RoomsSwap = {
-			event: '',
-			room: '',
-		};
+			console.log( 'getRecomendation', date );
+			console.log( 'getRecomendation', members );
 
-		
-		// если это режим event и событие в прошлом, отображаем только выбранную переговорку
-		if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
-			let date = {
-				start: this.props.data.event.dateStart,
-				end: this.props.data.event.dateEnd,
-			};
-			let singleRecomendation = {
-				date: date,
-				room: this.props.data.event.room,
+			// отбираем события на нужный день с датой окончания ранее плановой даты нового события
+			let targetEvents = [];
+			let allEvents = this.props.data.events;
+			let allEventsL = this.props.data.events.length;
+			for ( let i = 0; i < allEventsL; i++ ) {
+				//console.log( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) );
+				if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
+					targetEvents.push( allEvents[i] );
+				}
+			}
+			console.log( 'события сегодня', targetEvents );
+			// выбрать переговорки, подходящие по вместимости
+			let participantsNum = this.state.selectedUsers.length;
+			let smallSizeRooms = []; // неподходящие по размеру комнаты
+			let suitableSizeRooms = []; // подходящие по размеру комнаты
+			for ( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].capacity >= participantsNum ) {
+					suitableSizeRooms.push( this.props.data.rooms[i] );
+				} else {
+					smallSizeRooms.push( this.props.data.rooms[i] );
+				}
+			}
+			// для каждой из подходящих и неподходящих проверить, свободный ли запрашиваемый интервал
+			// сделать массив мешающих эвентов
+			// сделать массив меньших по размерам, но подходящих
+			// сделать массив подходящих по размеру и свободных
+			let blockingEvents = [];
+			let smallButEmptyRoms = [];
+			let suitableEmptyRooms = [];
+
+
+			// отсортировать массив подходящих и свободных по удаленности от всех участников
+			// если массив подходящих свободных пустой, можно ли перенести мешающие события в переговорку поменьше
+			// если да, то сгенерировать массив свапов
+			// если свапы есть, добавить в рекомендации комнаты, которые можно освободить
+			// если свапов нет, вывести список переговорок, отсортированных по ближайшей освобождающейся (время окончания)
+
+
+	/**
+	 * @typedef {Object} Recommendation
+	 * @property {EventDate} date Дата и время проведения встречи.
+	 * @property {String} room Идентификатор переговорки.
+	 * @property {RoomsSwap[]} [swap] Необходимые замены переговорк для реализации рекомендации.
+	 */
+			let Recomendation = {
+				date: {},
+				room: '',
 				swap: [],
 			};
-			
-			recomendations.push( singleRecomendation );
-			
-			this.setState({
-				recomendations: recomendations,
-			});
-			
-			console.log( 'рекомендации:', this.state.recomendations );
-			// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку
-		} else if ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) {
-			
-			// если это не режим event отображаем список рекомендаций
-		} else if ( this.eventmode !== 'event' ) {
-		
-		
-		} else {
-			return null;
+
+	/**
+	 * @typedef {Object} RoomsSwap
+	 * @property {string} event Идентификатор встречи.
+	 * @property {String} room Новый идентификатор переговорки.
+	 */
+			let RoomsSwap = {
+				event: '',
+				room: '',
+			};
+
+
+			// если это режим event и событие в прошлом, отображаем только выбранную переговорку
+			if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
+				let date = {
+					start: this.props.data.event.dateStart,
+					end: this.props.data.event.dateEnd,
+				};
+				let singleRecomendation = {
+					date: date,
+					room: this.props.data.event.room,
+					swap: [],
+				};
+
+				recomendations.push( singleRecomendation );
+
+				this.setState({
+					recomendations: recomendations,
+				});
+
+				console.log( 'рекомендации:', this.state.recomendations );
+				// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку
+			} else if ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) {
+
+				// если это не режим event отображаем список рекомендаций
+			} else if ( this.eventmode !== 'event' ) {
+
+
+			} else {
+				return null;
+			}
+
+			return recomendations;
 		}
-		
-		
-		
-		
-		return recomendations;
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
@@ -911,6 +936,8 @@ const queryAll = gql ` query ($id: ID!) {
 	users { id login homeFloor avatarUrl }
 	
 	events { id title dateStart dateEnd users { id } room { id } }
+	
+	rooms { id title capacity floor }
 	
 	event (id: $id) {
 	  title
