@@ -156,24 +156,24 @@ class Eventeditor extends Component {
 	}
 
 /**
- * Function changer запускает получение рекомендаций
+ * Function changer обрабатывает начало и окончание события и запускает получение рекомендаций
  */
 	changer() {
-	/**
-	 * @typedef {Object} EventDate
-	 * @property {String} start Timestamp начала встречи. "YYYY-MM-DDTHH:mm:ss.SSSSZ"
-	 * @property {String} end Timestamp окончания встречи. "YYYY-MM-DDTHH:mm:ss.SSSSZ"
-	 */
-	let EventDate = {
-		start: moment( $( '#eventDate' ).val() + ' ' + $( '#timeStart' ).val() ),
-		end: '',
-	};
-	
-	let members = [];
-	
-	this.getRecomendation( EventDate, members );
-	console.log( 'changer', EventDate );
-	
+
+		let dateInpt = $( '#eventDate' ).val();
+		let startInpt = $( '#timeStart' ).val();
+		let endInpt = $( '#timeEnd' ).val();
+/**
+ * @typedef {Object} EventDate Желаемое время начала и окончания события
+ * @property {String} start Timestamp начала встречи. "YYYY-MM-DDTHH:mm:ss.SSSZ"
+ * @property {String} end Timestamp окончания встречи. "YYYY-MM-DDTHH:mm:ss.SSSZ"
+ */
+		let EventDate = {
+			start: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + startInpt + ':00.000Z',
+			end: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + endInpt + ':00.000Z',
+		};
+		
+		this.getRecomendation( EventDate, this.state.selectedUsers );
 	}
 
 	getRecomendation( date, members ) {
@@ -181,6 +181,18 @@ class Eventeditor extends Component {
 		
 		console.log( 'getRecomendation', date );
 		console.log( 'getRecomendation', members );
+		
+		// выбрать переговорки, подходящие по вместимости
+		// для каждой из них проверить, свободный ли запрашиваемый интервал
+		// сделать массив мешающих эвентов
+		// сделать массив меньших по размерам, но подходящих
+		// сделать массив подходящих и свободных
+		// отсортировать массив подходящих и свободных по удаленности от всех участников
+		// если массив подходящих свободных пустой, можно ли перенести мешающие события в переговорку поменьше
+		// если да, то сгенерировать массив свапов
+		// если свапы есть, добавить в рекомендации комнаты, которые можно освободить
+		// если свапов нет, вывести список переговорок, отсортированных по ближайшей освобождающейся (время окончания)
+		
 		
 /**
  * @typedef {Object} Recommendation
@@ -224,6 +236,15 @@ class Eventeditor extends Component {
 			});
 			
 			console.log( 'рекомендации:', this.state.recomendations );
+			// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку
+		} else if ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) {
+			
+			// если это не режим event отображаем список рекомендаций
+		} else if ( this.eventmode !== 'event' ) {
+		
+		
+		} else {
+			return null;
 		}
 		
 		
@@ -887,19 +908,21 @@ console.log( 'пропс', this.props, 'стейт', this.state );
 }
 
 const queryAll = gql ` query ($id: ID!) {
- users {id login homeFloor avatarUrl }
-
-  event (id: $id) {
-    title
-    dateStart
-    dateEnd
-    users {
-      id
-    }
-    room {
-      id
-    }
-  }
+	users { id login homeFloor avatarUrl }
+	
+	events { id title dateStart dateEnd users { id } room { id } }
+	
+	event (id: $id) {
+	  title
+	  dateStart
+	  dateEnd
+	  users {
+	    id
+	  }
+	  room {
+	    id
+	  }
+	}
 } `;
 
 export default compose(
