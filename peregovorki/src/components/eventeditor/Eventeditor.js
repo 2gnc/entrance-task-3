@@ -33,6 +33,7 @@ class Eventeditor extends Component {
 		this.initialEventUsers = [];
 		this.initialEventRoom = '';
 		this.initialEventInfo = '';
+		this.eventInfo = '';
 		
 		this.fakeRequest = this.fakeRequest.bind( this );
 		this.matchStateToTerm = this.matchStateToTerm.bind( this );
@@ -263,7 +264,6 @@ class Eventeditor extends Component {
 		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val();
 		
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
-		this.eventInfo = '';
 		
 		if ( theme.val() < 3 ) {// тема сообщения указана
 			errors.push( 'непонятная тема' );
@@ -366,25 +366,103 @@ class Eventeditor extends Component {
 				let roomHasChanged = this.initialEventRoom !== this.state.selectedRoom;
 				console.log( 'комната изменилась', roomHasChanged );
 				// определяем, менялись ли параметры события title, dateStart, dateEnd
-				let newEventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) + ', ' + $( '#timeStart' ).val() + ' - ' + $( '#timeEnd' ).val();
-				let eventHasChanged = this.initialEventInfo === newEventInfo;
-				console.log( eventHasChanged );
+				let newEventInfo = this.state.dateInPicker.format( 'DD MMMM, YYYY' ) + ', ' + $( '#timeStart' ).val() + ' - ' + $( '#timeEnd' ).val() + ' ' + $( '#eventTheme' ).val();
+				let eventHasChanged = this.initialEventInfo !== newEventInfo;
+				
+				// Строка с информацией для модального кна
+				this.eventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) +
+					', ' +
+					$( '#timeStart' ).val() +
+					' - ' +
+					$( '#timeEnd' ).val() +
+					' ' +
+					$( '.recomendation--selected' ).attr( 'data-roomname' );
 				
 				// запускаем мутацию updateEvent если менялись параметры события
 				if ( eventHasChanged ) {
 					console.log( 'updateEvent' );
+					
+					this.props.updateEvent({
+							mutation: 'changeEvent',
+							variables: {
+								input: {
+									title: parameters.eventTheme,
+									dateStart: parameters.eventStart,
+									dateEnd: parameters.eventEnd,
+								},
+                id: this.props.eventToDownload,
+							}
+						})
+						.then(({ data }) => {
+							this.setState({
+								showModal: 'updated',
+							});
+						}).catch((error) => {
+						console.log('there was an error sending the query create', error);
+					});
 				}
-				// запускаем мутацию removeUsersFromEvent если есть удаленные
+				// запускаем мутацию removeUsersFromEvent если есть удаленные для каждого индекса в массиве
 				if ( deletedUsers.length ) {
-					console.log( 'removeUsersFromEvent' );
+					
+					deletedUsers.forEach( ( item ) => {
+						console.log( 'удаляю', item.id );
+						this.props.removeUser({
+								mutation: 'removeUserFromEvent',
+								variables: {
+									evId: this.props.eventToDownload, // ID события
+									userId: item.id, // ID пользователя
+								}
+							})
+							.then(({ data }) => {
+								console.log( data );
+								this.setState({
+									showModal: 'updated',
+								});
+							}).catch((error) => {
+							console.log('there was an error sending the query create', error);
+						});
+					})
 				}
 				// запускаем мутацию addUsersToEvent если есть добавленные
 				if ( addedUsers.length ) {
-					console.log( 'addUsersToEvent' );
+					addedUsers.forEach( ( item ) => {
+						this.props.addUser({
+								mutation: 'addUserToEvent',
+								variables: {
+									evId: this.props.eventToDownload, // ID события
+									userId: item.id, // ID пользователя
+								}
+							})
+							.then(({ data }) => {
+								console.log( data );
+								this.setState({
+									showModal: 'updated',
+								});
+							}).catch((error) => {
+							console.log('there was an error sending the query create', error);
+						});
+					})
+					
 				}
 				// changeEventRoom ( если менялась комната )
 				if ( roomHasChanged ) {
-					console.log( 'changeEventRoom' );
+					console.log( 'changeEventRoom', this.state.selectedRoom, this.props.eventToDownload );
+					
+					this.props.changeRoom({
+							mutation: 'changeEventRoom',
+							variables: {
+								evId: this.props.eventToDownload, // ID события
+								roomId: this.state.selectedRoom, // ID пользователя
+							}
+						})
+						.then(({ data }) => {
+							this.setState({
+								showModal: 'updated',
+							});
+						}).catch((error) => {
+						console.log('there was an error sending the query create', error);
+					});
+					
 				}
 				
 				// обнуляем указание на модальное окно
@@ -507,9 +585,8 @@ class Eventeditor extends Component {
  */
 // формат, this.state.dateInPicker.format( 'DD MMMM YYYY' ) + ', ' + $( '#timeStart' ).val() + ' - ' + $( '#timeEnd' ).val();
 		if ( this.eventmode === 'event' && this.initialEventInfo === '' ) {
-			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime;
+			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime + ' ' + this.eventLoader().theme;
 		}
-		
 
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
@@ -520,6 +597,8 @@ class Eventeditor extends Component {
 				return ( <Modal message = {this.errors} type = "error" fixHandler = {this.fixErrors} />);
 			} else if ( this.state.showModal === 'succes' ) {
 				return ( <Modal message = 'Встреча создана!' type = 'succes' eventInfo = {this.eventInfo} /> );
+			} else if ( this.state.showModal === 'updated' ) {
+				return ( <Modal message = 'Встреча обновлена!' type = 'updated' eventInfo = {this.eventInfo} /> );
 			} else if ( this.state.showModal === 'deleted' ) {
 				return ( <Modal message = 'Встреча будет удалена безвозвратно!' type = "deleted" deleteHandler = {this.deleteDelete} /> );
 			} else {
@@ -714,8 +793,6 @@ console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
 const queryAll = gql ` query ($id: ID!) {
  users {id login homeFloor avatarUrl }
 
-
-
   event (id: $id) {
     title
     dateStart
@@ -732,6 +809,46 @@ const queryAll = gql ` query ($id: ID!) {
 export default compose(
 
 	graphql( queryAll, {options: ({eventToDownload}) => ({ variables: {id: eventToDownload,}, }), } ),
+	graphql( gql`
+		mutation changeEvent ( $id: ID!, $input: EventInput!) {
+      updateEvent (id: $id, input: $input ) {
+		    id
+		    title
+		    dateStart
+		    dateEnd
+      }
+		}
+	`, {name: 'updateEvent'} ),
+	graphql( gql`
+		mutation removeUser ( $evId: ID!, $userId:ID! ) {
+      removeUserFromEvent ( id: $evId, userId: $userId ) {
+        id
+        users {
+          id
+        }
+      }
+		}
+	`, { name: 'removeUser' } ),
+	graphql( gql`
+		mutation addUser ( $evId: ID!, $userId:ID! ) {
+      addUserToEvent ( id: $evId, userId: $userId ) {
+        id
+        users {
+          id
+        }
+      }
+		}
+	`, { name: 'addUser' } ),
+	graphql( gql`
+		mutation changeRoom ( $evId: ID!, $roomId:ID! ) {
+		  changeEventRoom ( id: $evId, roomId: $roomId ) {
+		    id
+		    room {
+		      id
+		    }
+		  }
+		}
+	`, { name: 'changeRoom' } ),
 	graphql(gql` mutation removeEvent ($id: ID!) { removeEvent (id: $id) { id } }`, {name: 'removeEvent'}),
 	graphql(gql`
 		mutation craeteEvent ($input: EventInput!, $users: [ID], $room: ID!) {

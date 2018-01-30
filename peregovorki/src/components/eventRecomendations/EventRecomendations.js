@@ -58,7 +58,7 @@ class EventRecomendationsEmpty extends Component {
 		}
 		
 		let roomsIds = this.props.data.rooms;
-		/*Конец заглушки*/
+		
 		
 		let rooms = roomsIds.map( (items, i)=>{
 			return (
@@ -72,6 +72,7 @@ class EventRecomendationsEmpty extends Component {
 				/>
 			);
 		});
+		/*Конец заглушки*/
 		return (
 			<div className='event__col event__col--recomendation'>
 				<div className='label'>Рекомендованные переговорки</div>
