@@ -108,8 +108,13 @@ class Eventeditor extends Component {
  * @param {String} datetime строка с датой и временем в формате YYYY-MM-DDTHH:mm:ss.000Z
  */
 	butterflyEffect( datetime ) {
-		let effect = moment(moment(datetime).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'minute' )
-		return effect ;
+		if ( datetime ) {
+			let effect = moment(moment(datetime).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'minute' )
+			return effect;
+		} else {
+			return true;
+		}
+		
 }
 
 /**
@@ -602,12 +607,12 @@ class Eventeditor extends Component {
 			return null;
 		}
 /**
- * Function blockInpts определяет, находится ли время начала события в прошлом относительно текущего момента времени
+ * Function blockInpts определяет, нужно ли блокировать форму для изменений
  * @return {boolean}
  */
-		// let blockInpts = () => {
-		// 	return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
-		// };
+		let blockInpts = () => {
+			return ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) );
+		};
 /**
  * Заполняем изначальных участников для режима event
  */
