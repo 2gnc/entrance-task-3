@@ -128,7 +128,14 @@ class EventRecomendationsEmpty extends Component {
 				</div>
 			)
 		} else {
-			return null
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Рекомендованные переговорки</div>
+					<div className='recomendation__box'>
+						{rooms}
+					</div>
+				</div>
+			)
 		}
 	}
 }

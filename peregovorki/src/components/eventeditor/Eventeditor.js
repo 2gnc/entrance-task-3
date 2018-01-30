@@ -152,18 +152,36 @@ class Eventeditor extends Component {
 		} else {
 			return null;
 		}
+		setTimeout( this.changer, 100 );
 	}
 
 /**
  * Function changer запускает получение рекомендаций
  */
 	changer() {
-		this.getRecomendation();
-		console.log( 'changer', this );
+	/**
+	 * @typedef {Object} EventDate
+	 * @property {String} start Timestamp начала встречи. "YYYY-MM-DDTHH:mm:ss.SSSSZ"
+	 * @property {String} end Timestamp окончания встречи. "YYYY-MM-DDTHH:mm:ss.SSSSZ"
+	 */
+	let EventDate = {
+		start: moment( $( '#eventDate' ).val() + ' ' + $( '#timeStart' ).val() ),
+		end: '',
+	};
+	
+	let members = [];
+	
+	this.getRecomendation( EventDate, members );
+	console.log( 'changer', EventDate );
+	
 	}
 
-	getRecomendation() {
+	getRecomendation( date, members ) {
 		let recomendations = [];
+		
+		console.log( 'getRecomendation', date );
+		console.log( 'getRecomendation', members );
+		
 /**
  * @typedef {Object} Recommendation
  * @property {EventDate} date Дата и время проведения встречи.
@@ -175,15 +193,7 @@ class Eventeditor extends Component {
 			room: '',
 			swap: [],
 		};
-/**
- * @typedef {Object} EventDate
- * @property {String} start Timestamp начала встречи.
- * @property {String} end Timestamp окончания встречи.
- */
-		let EventDate = {
-			start: '',
-			end: '',
-		};
+
 /**
  * @typedef {Object} RoomsSwap
  * @property {string} event Идентификатор встречи.
@@ -193,6 +203,7 @@ class Eventeditor extends Component {
 			event: '',
 			room: '',
 		};
+
 		
 		// если это режим event и событие в прошлом, отображаем только выбранную переговорку
 		if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
@@ -379,8 +390,8 @@ class Eventeditor extends Component {
 						return item.id;
 					}),
 					eventRoom: this.state.selectedRoom,
-					eventStart: moment( startTime ).utc('981Z'),
-					eventEnd: moment( endTime ).utc('981Z'),
+					eventStart: moment( startTime ).utc(),
+					eventEnd: moment( endTime ).utc(),
 				}
 			);
 		}
@@ -599,6 +610,7 @@ class Eventeditor extends Component {
 	handleAddUser( user ) {
 		if ( user ) {
 			this.state.selectedUsers.push(user);
+			this.changer();
 		}
 	}
 
@@ -608,6 +620,7 @@ class Eventeditor extends Component {
 			if(item.login === user) { x = i } return null;
 		});
 		this.state.selectedUsers.splice( x, [1]);
+		this.changer();
 	}
 
 	fakeRequest( value, cb ) {
