@@ -498,11 +498,16 @@ class ScheduleDay extends Component {
 		return x;
 	};
 	
+	/**
+	 * Fucntion getTodayEvents возвращает массив событий на текущий день
+	 * @param events
+	 * @return {Array}
+	 */
 	getTodayEvents( events ) {
 
 		let todayEvents = [];
-		events.forEach( ( item, i ) => {
-			if ( item.eventStart.utc().isSame( this.props.dayToDisplay, 'day' ) ) {
+		events.forEach( ( item ) => {
+			if ( moment(item.eventStart.utc().format( 'YYYY-MM-DD' )).isSame( moment( this.props.dayToDisplay.format( 'YYYY-MM-DD' ) ), 'day' ) ) {
 				todayEvents.push( item );
 			}
 		});
