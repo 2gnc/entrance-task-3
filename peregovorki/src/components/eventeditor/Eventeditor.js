@@ -101,6 +101,20 @@ class Eventeditor extends Component {
 				return null;
 			}
 		}, 300);
+		
+/**
+ * Вызываем получение рекомендации (в данном случае будет единственная комната, которую нужно будет отобразить)
+ */
+		setTimeout( () => {
+			if (
+					this.eventmode === 'event' &&
+					this.butterflyEffect( this.props.data.event.dateStart ) &&
+					this.state.recomendations.length === 0
+			) {
+				this.getRecomendation();
+			}
+		}, 300 );
+		
 	}
 	
 /**
@@ -181,10 +195,26 @@ class Eventeditor extends Component {
 		};
 		
 		// если это режим event и событие в прошлом, отображаем только выбранную переговорку
+		if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
+			let date = {
+				start: this.props.data.event.dateStart,
+				end: this.props.data.event.dateEnd,
+			};
+			let singleRecomendation = {
+				date: date,
+				room: this.props.data.event.room,
+				swap: [],
+			};
+			
+			recomendations.push( singleRecomendation );
+			
+			this.setState({
+				recomendations: recomendations,
+			});
+			
+			console.log( 'рекомендации:', this.state.recomendations );
+		}
 		
-		this.setState({
-			recomendations: recomendations,
-		});
 		
 		
 		
@@ -632,7 +662,8 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'event' && this.initialEventInfo === '' ) {
 			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime + ' ' + this.eventLoader().theme;
 		}
-console.log( this.props, this.state );
+		
+console.log( 'пропс', this.props, 'стейт', this.state );
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -686,6 +717,10 @@ console.log( this.props, this.state );
  * @type {string} 
  */
 		let target;
+/*
+ * @const block нужно или нет дизейблить поля ввода.
+ * @type {Boolean}
+ */
 		let block;
 		if ( this.eventmode === 'event' ) {
 			block = this.butterflyEffect( this.props.data.event.dateStart );

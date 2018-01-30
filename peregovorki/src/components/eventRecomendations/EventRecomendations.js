@@ -57,8 +57,9 @@ class EventRecomendationsEmpty extends Component {
 			return null;
 		}
 		
-		let roomsIds = this.props.data.rooms;
+		console.log( this.props.recomendations );
 		
+		let roomsIds = this.props.data.rooms;
 		
 		let rooms = roomsIds.map( (items, i)=>{
 			return (
@@ -72,15 +73,45 @@ class EventRecomendationsEmpty extends Component {
 				/>
 			);
 		});
+		
+		let getRoomName = ( roomId ) => {
+			//TODO найти в массиве комнату и вернуть ее имя
+		};
+		
+		let recomendations = this.props.recomendations.map( ( item, i ) => {
+			return (
+				<Room
+					roomId = {item.id}
+					name = {item.room.id}
+					layout = 'inrecomendations'
+					floor = {item.floor}
+					key = {i}
+					isSelected = { true }
+				/>
+			)
+		} );
+		
 		/*Конец заглушки*/
-		return (
-			<div className='event__col event__col--recomendation'>
-				<div className='label'>Рекомендованные переговорки</div>
-				<div className='recomendation__box'>
-					{rooms}
+		if ( this.props.isPast && this.props.recomendations.length === 1 ) {
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Ваша переговорка: </div>
+					<div className='recomendation__box'>
+						{recomendations}
+					</div>
 				</div>
-			</div>
-		)
+			)
+		} else {
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Рекомендованные переговорки</div>
+					<div className='recomendation__box'>
+						{rooms}
+					</div>
+				</div>
+			)
+		}
+		
 	}
 }
 
