@@ -50,6 +50,7 @@ class Eventeditor extends Component {
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
 		this.changerTest = this.changerTest.bind( this );
+		this.butterflyEffect = this.butterflyEffect.bind( this );
 
 		this.state = {
 			selectedUsers: [],
@@ -101,6 +102,16 @@ class Eventeditor extends Component {
 			}
 		}, 300);
 	}
+	
+/**
+ * Function isItPast определяет, является ли указанный момент времени в прошлом с точностью до минуты.
+ * @param {String} datetime строка с датой и временем в формате YYYY-MM-DDTHH:mm:ss.000Z
+ */
+	butterflyEffect( datetime ) {
+		let effect = moment(moment(datetime).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'minute' )
+		return effect ;
+}
+
 /**
  * Function changerTest обрабатывает изменения в datepicker-e
  * @param {*|moment()} dd выбранная дата 
@@ -110,15 +121,15 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'new' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else if ( this.eventmode === 'event' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else if ( this.eventmode === 'make/:data' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else {
 			return null;
 		}
@@ -134,11 +145,43 @@ class Eventeditor extends Component {
 
 	getRecomendation() {
 		let recomendations = [];
-		let recomendation = {};
+/**
+ * @typedef {Object} Recommendation
+ * @property {EventDate} date Дата и время проведения встречи.
+ * @property {String} room Идентификатор переговорки.
+ * @property {RoomsSwap[]} [swap] Необходимые замены переговорк для реализации рекомендации.
+ */
+		let Recomendation = {
+			date: {},
+			room: '',
+			swap: [],
+		};
+/**
+ * @typedef {Object} EventDate
+ * @property {String} start Timestamp начала встречи.
+ * @property {String} end Timestamp окончания встречи.
+ */
+		let EventDate = {
+			start: '',
+			end: '',
+		};
+/**
+ * @typedef {Object} RoomsSwap
+ * @property {string} event Идентификатор встречи.
+ * @property {String} room Новый идентификатор переговорки.
+ */
+		let RoomsSwap = {
+			event: '',
+			room: '',
+		};
+		
+		// если это режим event и событие в прошлом, отображаем только выбранную переговорку
 		
 		this.setState({
 			recomendations: recomendations,
 		});
+		
+		
 		
 		return recomendations;
 	}
@@ -180,7 +223,6 @@ class Eventeditor extends Component {
  * @param {object} eventObj Результат выполнения eventLoader()
  */
 	eventShow( loader ) {
-		console.log( 'данные о событии', loader );
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
@@ -259,9 +301,11 @@ class Eventeditor extends Component {
 		let users = $( '#eventUsersInpt' );
 		let date = $( '#eventDate' );
 		let startInpt = $( '#timeStart' );
-		let startTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + startInpt.val();
+		let startTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + startInpt.val() + ':00.000Z';
 		let endInpt = $( '#timeEnd' );
-		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val();
+		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val() + ':00.000Z';
+	
+		console.log( 'butterflyEffect', startTime, this.butterflyEffect( startTime ) );
 		
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
 		
@@ -273,12 +317,8 @@ class Eventeditor extends Component {
 			errors.push( 'мало участников' );
 			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
-		if ( this.eventmode !== 'event' &&  this.state.dateInPicker.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
-			errors.push( 'дата события в прошлом' );
-			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
-		}
-		if ( this.eventmode === 'event' && moment(startTime).utc().isBefore( moment().utc(), 'minute' ) ) { // дата в прошлом для режима event с точностью до минуты
-			errors.push( 'вы пытаетесь перенести событие в прошлое' );
+		if ( this.butterflyEffect( startTime ) ) { // дата в прошлом для режима event с точностью до минуты
+			errors.push( 'вы пытаетесь вмешаться в прошлое' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
@@ -565,9 +605,9 @@ class Eventeditor extends Component {
  * Function blockInpts определяет, находится ли время начала события в прошлом относительно текущего момента времени
  * @return {boolean}
  */
-		let blockInpts = () => {
-			return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
-		};
+		// let blockInpts = () => {
+		// 	return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
+		// };
 /**
  * Заполняем изначальных участников для режима event
  */
@@ -587,7 +627,7 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'event' && this.initialEventInfo === '' ) {
 			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime + ' ' + this.eventLoader().theme;
 		}
-
+console.log( this.props, this.state );
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -605,7 +645,6 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
-console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
@@ -642,7 +681,11 @@ console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
  * @type {string} 
  */
 		let target;
-		let block = blockInpts();
+		let block;
+		if ( this.eventmode === 'event' ) {
+			block = this.butterflyEffect( this.props.data.event.dateStart );
+		}
+		
 		return (
 			<div className='App__wrapper'>
 				<Header hasButton = {false} />

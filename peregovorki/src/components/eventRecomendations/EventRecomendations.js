@@ -51,7 +51,7 @@ class EventRecomendationsEmpty extends Component {
 	
 	render() {
 		/*Заглушка
-		* тут будем получать массив подходящих на дату-время комнат
+		* Редерит полученные рекомендации
 		* */
 		if(!this.props.data.rooms) {
 			return null;
