@@ -72,7 +72,7 @@ class EventRecomendationsEmpty extends Component {
 			);
 		});
 		
-		let getRoomName = ( roomId ) => {
+		const getRoomName = ( roomId ) => {
 			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
 				if ( this.props.data.rooms[i].id === roomId ) {
 					return this.props.data.rooms[i].title
@@ -80,12 +80,18 @@ class EventRecomendationsEmpty extends Component {
 			}
 		};
 		
-		let getFloor = ( roomId ) => {
+		const getFloor = ( roomId ) => {
 			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
 				if ( this.props.data.rooms[i].id === roomId ) {
 					return this.props.data.rooms[i].floor
 				}
 			}
+		};
+		
+		const getTime = ( recomendation ) => {
+			let timeStart = moment( recomendation.date.start ).utc().format( 'HH:mm' );
+			let timeEnd = moment( recomendation.date.end ).utc().format( 'HH:mm' );
+			return timeStart + ' - ' + timeEnd;
 		};
 		
 		let recomendations = this.props.recomendations.map( ( item, i ) => {
@@ -95,6 +101,7 @@ class EventRecomendationsEmpty extends Component {
 					name = { getRoomName( item.room.id ) }
 					layout = 'inrecomendations'
 					floor = { getFloor( item.room.id ) }
+					time = { getTime( item ) }
 					key = {i}
 					isSelected = { true }
 				/>

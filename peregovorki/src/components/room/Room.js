@@ -75,7 +75,7 @@ export default class Room extends Component {
 						data-roomname = {this.props.name}
 						data-roomfloor = { this.props.floor }
 					>
-						<span className='recomendation__time'>16:00 &ndash; 16:30</span>
+						<span className='recomendation__time'> { this.props.time } </span>
 						<span className='recomendation__room'>
 							{this.props.name} &middot; {this.getFloor()}
 							</span>
