@@ -50,14 +50,12 @@ class EventRecomendationsEmpty extends Component {
 	}
 	
 	render() {
-		/*Заглушка
+		/** Заглушка
 		* Редерит полученные рекомендации
 		* */
 		if(!this.props.data.rooms) {
 			return null;
 		}
-		
-		console.log( this.props.recomendations );
 		
 		let roomsIds = this.props.data.rooms;
 		
@@ -75,16 +73,28 @@ class EventRecomendationsEmpty extends Component {
 		});
 		
 		let getRoomName = ( roomId ) => {
-			//TODO найти в массиве комнату и вернуть ее имя
+			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].id === roomId ) {
+					return this.props.data.rooms[i].title
+				}
+			}
+		};
+		
+		let getFloor = ( roomId ) => {
+			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].id === roomId ) {
+					return this.props.data.rooms[i].floor
+				}
+			}
 		};
 		
 		let recomendations = this.props.recomendations.map( ( item, i ) => {
 			return (
 				<Room
 					roomId = {item.id}
-					name = {item.room.id}
+					name = { getRoomName( item.room.id ) }
 					layout = 'inrecomendations'
-					floor = {item.floor}
+					floor = { getFloor( item.room.id ) }
 					key = {i}
 					isSelected = { true }
 				/>
@@ -101,7 +111,7 @@ class EventRecomendationsEmpty extends Component {
 					</div>
 				</div>
 			)
-		} else {
+		} else if ( !this.props.isPast && this.props.recomendations.length >= 1 ) {
 			return (
 				<div className='event__col event__col--recomendation'>
 					<div className='label'>Рекомендованные переговорки</div>
@@ -110,11 +120,11 @@ class EventRecomendationsEmpty extends Component {
 					</div>
 				</div>
 			)
+		} else {
+			return null
 		}
-		
 	}
 }
-
 
 const roomsQuery = gql`
 	query {
