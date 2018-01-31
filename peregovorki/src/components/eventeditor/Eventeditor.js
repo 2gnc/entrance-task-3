@@ -194,7 +194,7 @@ class Eventeditor extends Component {
 			let idToRemove = [];
 			for ( let i = 0; i < targetEvents.length; i++ ) {
 				if ( moment( targetEvents[i].dateEnd ).utc().subtract( 1, 'seconds' ).isBefore( moment( date.start ).utc(), 'minute' ) ||
-					moment( targetEvents[i].dateStart ).utc().isBefore( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
+					moment( targetEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
 					idToRemove.push( targetEvents[i].id );
 				}
 			}
@@ -221,12 +221,11 @@ class Eventeditor extends Component {
 			}
 			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
 			// для списка из подходящих исключить те, в которых "мешающие события"
+			
 			// для каждой из неподходящих проверить, свободен ли запрашиваемый интервал
 			
-			// сделать массив мешающих эвентов
 			// сделать массив меньших по размерам, но подходящих
 			// сделать массив подходящих по размеру и свободных
-			let blockingEvents = [];
 			let smallButEmptyRoms = [];
 			let suitableEmptyRooms = [];
 
