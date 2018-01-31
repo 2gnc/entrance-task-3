@@ -62,6 +62,7 @@ class Eventeditor extends Component {
 			showModal: '',
 			recomendations: [],
 			dateInPicker: moment(),
+			swap: '',
 		};
 	}
 
@@ -117,7 +118,7 @@ class Eventeditor extends Component {
 		
 		setTimeout( () => {
 			if (
-				( this.eventmode === 'event' /*|| this.eventmode === 'make/:data'*/ ) &&
+				( this.eventmode === 'event' ) &&
 				!this.butterflyEffect( this.props.data.event.dateStart ) &&
 				this.state.recomendations.length === 0
 			) {
@@ -597,7 +598,7 @@ class Eventeditor extends Component {
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
 * @parpam {object} e Событие клика на кнопку "Сохранить"
 */
-	saveEvent(e) { // TODO проверять доступность комнаты непосредственно перед записью
+	saveEvent(e) {
 		console.log( 'save clicked' );
 		e.preventDefault();
 		
@@ -710,7 +711,7 @@ class Eventeditor extends Component {
 							mutation: 'changeEventRoom',
 							variables: {
 								evId: this.props.eventToDownload, // ID события
-								roomId: this.state.selectedRoom, // ID пользователя
+								roomId: this.state.selectedRoom, // ID комнаты
 							}
 						})
 						.then(({ data }) => {
@@ -742,6 +743,9 @@ class Eventeditor extends Component {
 					showModal: 'error',
 				});
 			} else { // все заполнено верно, запускаем мутацию craeteEvent (считатеся, что проверка занятости переговорок находится в recomendations, а занятость участников не проверяется)
+				let swap = Boolean(this.state.swap) ;
+				console.log( 'нужен свап', swap, this.state.swap );
+				
 				this.eventInfo = this.state.dateInPicker.format( 'DD MMMM YYYY' ) +
 					', ' +
 					$( '#timeStart' ).val() +
@@ -753,26 +757,60 @@ class Eventeditor extends Component {
 				this.setState({
 					showModal: '',
 				});
+				if ( !swap ) { // если свап не требуется, просто запускаем мутацию создания
+					this.props.craeteEvent({
+							mutation: 'craeteEvent',
+							variables: {
+								input: {
+									title: parameters.eventTheme,
+									dateStart: parameters.eventStart,
+									dateEnd: parameters.eventEnd,
+								},
+								users: parameters.eventParticipants,
+								room: parameters.eventRoom,
+							}
+						})
+						.then(({ data }) => {
+							this.setState({
+								showModal: 'succes',
+							});
+						}).catch((error) => {
+						console.log('there was an error sending the query create', error);
+					});
+				}
 				
-				this.props.craeteEvent({
-						mutation: 'craeteEvent',
+				if ( swap ) {
+					console.log( 'свап' );
+					// сначала делаем свап
+					this.props.changeRoom({
+						mutation: 'changeEventRoom',
 						variables: {
-							input: {
-								title: parameters.eventTheme,
-								dateStart: parameters.eventStart,
-								dateEnd: parameters.eventEnd,
-							},
-							users: parameters.eventParticipants,
-							room: parameters.eventRoom,
+							evId: this.state.swap.event.id, // ID события
+							roomId: this.state.swap.room.id, // ID комнаты
 						}
-					})
-					.then(({ data }) => {
-						this.setState({
-							showModal: 'succes',
+					}).then( () => {
+						this.props.craeteEvent({
+								mutation: 'craeteEvent',
+								variables: {
+									input: {
+										title: parameters.eventTheme,
+										dateStart: parameters.eventStart,
+										dateEnd: parameters.eventEnd,
+									},
+									users: parameters.eventParticipants,
+									room: parameters.eventRoom,
+								}
+							})
+							.then(({ data }) => {
+								this.setState({
+									showModal: 'succes',
+								});
+							}).catch((error) => {
+							console.log('there was an error sending the query create', error);
 						});
-					}).catch((error) => {
-					console.log('there was an error sending the query create', error);
-				});
+					} )
+				}
+				
 			}
 		} else {
 			return null;
@@ -812,6 +850,15 @@ class Eventeditor extends Component {
 				selectedRoom: roomId,
 			});
 			this.roomInfo = roomName + ' · ' + roomFloor + ' этаж';
+			
+			
+			this.state.recomendations.forEach( ( rec ) => {
+				if ( rec.room === roomId && rec.swap.length !== 0 ) {
+					this.setState( {
+						swap: rec.swap,
+					} );
+				}
+			} );
 		}
 	}
 	render () {
