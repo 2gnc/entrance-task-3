@@ -11,42 +11,44 @@ class EventRecomendationsEmpty extends Component {
 		this.state = {
 			selectedRoom: '',
 		};
-		
+		this.setClicksHandler = this.setClicksHandler.bind( this );
 	}
-
+	
+/**
+ * Function setClicksHandler устанавливает обработчики событий на блоки с рекомендацией. Устанавливает отсрочку, чтобы <Rom/> усплели подгрузиться.
+ */
+	setClicksHandler() {
+		$( document ).ready( () => {
+			$( '.recomendation__box' ).on( 'click', ( '.recomendation' ), (event)=>{
+				event.stopPropagation();
+				
+				let selectedRoomId = $( event.target.closest('.recomendation') ).attr( 'data-roomid' );
+				let selectedRoomName = $( event.target.closest('.recomendation') ).attr( 'data-roomname' );
+				let selectedRoomFloor = $( event.target.closest('.recomendation') ).attr( 'data-roomfloor' );
+				
+				this.props.parent.selectedRoomUpd( selectedRoomId, selectedRoomName, selectedRoomFloor );
+				if( this.state.selectedRoom !== this.props.selectedRoom ) {
+					this.setState({
+						selectedRoom: this.props.selectedRoom
+					});
+				}
+			});
+		});
+	}
+	
 	componentDidMount() {
-		// если в пропсах пришла выбранная комната, устанавливаем ее в стейт.
+// если в пропсах пришла выбранная комната, устанавливаем ее в стейт.
 		setTimeout( () => {
-			if ( this.props.selectedRoom ) {
+			if ( this.props.selectedRoom && this.state.selectedRoom === '' && this.props.isPast ) {
 				this.setState({
 					selectedRoom: this.props.selectedRoom,
 				});
 			}
-			if ( !this.props.isPast ) {
-				setTimeout( setClicksHandler , 200 );
-			}
 		}, 500 );
-/** 
- * Fucntion setClicksHandler устанавливает обработчики событий на блоки с рекомендацией. Устанавливает отсрочку, чтобы <Rom/> усплели подгрузиться.
- */
-		let setClicksHandler = ()=> {
-			$( document ).ready( () => {
-				$( '.recomendation__box' ).on( 'click', ( '.recomendation' ), (event)=>{
-					event.stopPropagation();
-					
-					let selectedRoomId = $( event.target.closest('.recomendation') ).attr( 'data-roomid' );
-					let selectedRoomName = $( event.target.closest('.recomendation') ).attr( 'data-roomname' );
-					let selectedRoomFloor = $( event.target.closest('.recomendation') ).attr( 'data-roomfloor' );
-					
-					this.props.parent.selectedRoomUpd( selectedRoomId, selectedRoomName, selectedRoomFloor );
-					if( this.state.selectedRoom !== this.props.selectedRoom ) {
-						this.setState({
-							selectedRoom: this.props.selectedRoom
-						});
-					}
-				});
-			});
-		};
+		
+		if ( !this.props.isPast ) {
+			setTimeout( this.setClicksHandler , 400 );
+		}
 	}
 	
 	render() {
