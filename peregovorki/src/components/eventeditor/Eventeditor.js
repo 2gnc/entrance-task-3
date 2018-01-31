@@ -117,13 +117,20 @@ class Eventeditor extends Component {
 		
 		setTimeout( () => {
 			if (
-				this.eventmode === 'event' &&
+				( this.eventmode === 'event' /*|| this.eventmode === 'make/:data'*/ ) &&
 				!this.butterflyEffect( this.props.data.event.dateStart ) &&
 				this.state.recomendations.length === 0
 			) {
+				console.log( this.eventmode );
 				this.changer();
 			}
 		}, 500 );
+		
+		setTimeout( () => {
+			if ( this.eventmode === 'make/:data' ) {
+				this.changer();
+			}
+		}, 500);
 		
 	}
 	
@@ -808,6 +815,7 @@ class Eventeditor extends Component {
 		}
 	}
 	render () {
+	
 /**
  * Ожидаем загрузку пользователей
  */
@@ -902,7 +910,7 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'event' ) {
 			block = this.butterflyEffect( this.props.data.event.dateStart );
 		}
-		
+
 		return (
 			<div className='App__wrapper'>
 				<Header hasButton = {false} />
