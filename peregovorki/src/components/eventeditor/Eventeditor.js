@@ -517,7 +517,11 @@ class Eventeditor extends Component {
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
 		
 		if ( theme.val() < 3 ) {// тема сообщения указана
-			errors.push( 'непонятная тема' );
+			errors.push( 'непонятная тема.' );
+			if( !theme.hasClass('inpt--error') ) {theme.addClass( 'inpt--error' );}
+		}
+		if ( theme.val().length > 34 ) {// тема сообщения слишком длинная
+			errors.push( 'слишком многословно' );
 			if( !theme.hasClass('inpt--error') ) {theme.addClass( 'inpt--error' );}
 		}
 		if ( this.state.selectedUsers.length < 1 ) { // выбран хотя бы 1 пользователь

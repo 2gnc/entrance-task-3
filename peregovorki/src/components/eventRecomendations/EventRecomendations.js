@@ -57,27 +57,10 @@ class EventRecomendationsEmpty extends Component {
 	}
 	
 	render() {
-		/** Заглушка
-		* Редерит полученные рекомендации
-		* */
+
 		if(!this.props.data.rooms) {
 			return null;
 		}
-		console.log( 'rr', this.props );
-		let roomsIds = this.props.data.rooms;
-		//console.log( this.props.selectedRoom );
-		let rooms = roomsIds.map( (items, i)=>{
-			return (
-				<Room
-					roomId = {items.id}
-					name = {items.title}
-					layout = 'inrecomendations'
-					floor = {items.floor}
-					key = {i}
-					isSelected = { this.state.selectedRoom === items.id }
-				/>
-			);
-		});
 		
 		const getRoomName = ( roomId ) => {
 			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
@@ -104,8 +87,6 @@ class EventRecomendationsEmpty extends Component {
 				return '?? - ??';
 			}
 		};
-		
-		
 		
 		let recomendations = this.props.recomendations.map( ( item, i ) => {
 			if ( this.props.isPast ) {
@@ -137,7 +118,6 @@ class EventRecomendationsEmpty extends Component {
 			}
 		} );
 		
-		/*Конец заглушки*/
 		if ( this.props.isPast && this.props.recomendations.length === 1 ) {
 			return (
 				<div className='event__col event__col--recomendation'>
@@ -176,18 +156,6 @@ const roomsQuery = gql`
     title
     capacity
     floor
-  }
-  events {
-    id
-    title
-    dateStart
-    dateEnd
-    users {
-      id
-    }
-    room {
-      id
-    }
   }
 }
 `;
