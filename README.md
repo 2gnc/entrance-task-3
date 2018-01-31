@@ -2,10 +2,11 @@
 
 ## Установка и запуск
 
-1. в корне проекта выполнить npm install;
-2. в /peregovorki выполнить npm install
-3. в корне проекта выполнить npm run dev (запустится сервер на http://localhost:3001)
-4. в /peregovorki выполнить npm start (запустится сервер на http://localhost:3000)
+1. склонировать репозиторий
+2. в корне проекта выполнить npm install;
+3. в /peregovorki выполнить npm install
+4. в корне проекта выполнить npm run dev (запустится сервер на http://localhost:3001)
+5. в /peregovorki выполнить npm start (запустится сервер на http://localhost:3000)
 
 ## Описание решения
 
