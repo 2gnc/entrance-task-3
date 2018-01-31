@@ -182,31 +182,31 @@ class Eventeditor extends Component {
 			let recomendations = [];
 
 			// отбираем события на нужный день
-			let targetEvents = []; // события в день планируемого мероприятия
+			let blockingEvents = []; // события в день планируемого мероприятия
 			let allEvents = this.props.data.events;
 			let allEventsL = this.props.data.events.length;
 			for ( let i = 0; i < allEventsL; i++ ) {
 				if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
-					targetEvents.push( allEvents[i] );
+					blockingEvents.push( allEvents[i] );
 				}
 			}
 			// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
 			let idToRemove = [];
-			for ( let i = 0; i < targetEvents.length; i++ ) {
-				if ( moment( targetEvents[i].dateEnd ).utc().subtract( 1, 'seconds' ).isBefore( moment( date.start ).utc(), 'minute' ) ||
-					moment( targetEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
-					idToRemove.push( targetEvents[i].id );
+			for ( let i = 0; i < blockingEvents.length; i++ ) {
+				if ( moment( blockingEvents[i].dateEnd ).utc().subtract( 1, 'seconds' ).isBefore( moment( date.start ).utc(), 'minute' ) ||
+					moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
+					idToRemove.push( blockingEvents[i].id );
 				}
 			}
 			while ( idToRemove.length > 0 ) {
-				for ( let i = 0; i < targetEvents.length; i++ ) {
-					if ( targetEvents[i].id === idToRemove[0] ) {
-						targetEvents.splice( i, 1 );
+				for ( let i = 0; i < blockingEvents.length; i++ ) {
+					if ( blockingEvents[i].id === idToRemove[0] ) {
+						blockingEvents.splice( i, 1 );
 						idToRemove.shift();
 					}
 				}
 			}
-			console.log( 'события, которые могут помешать', targetEvents );
+			console.log( 'события, которые могут помешать', blockingEvents );
 
 			// выбрать переговорки, подходящие по вместимости
 			let participantsNum = this.state.selectedUsers.length;
@@ -220,8 +220,17 @@ class Eventeditor extends Component {
 				}
 			}
 			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
-			// для списка из подходящих исключить те, в которых "мешающие события"
+			// для списка из подходящих исключить те, в которых "мешающие события", получим подходящие свободные
+			let buzyRooms = blockingEvents.map( ( item ) => {
+				return item.room.id;
+			} );
+			console.log( 'занятые комнаты', buzyRooms );
 			
+			let suitableFreeRooms = suitableSizeRooms.filter( ( room ) => {
+				return buzyRooms.indexOf( room.id ) === -1;
+			} );
+			
+			console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
 			// для каждой из неподходящих проверить, свободен ли запрашиваемый интервал
 			
 			// сделать массив меньших по размерам, но подходящих
