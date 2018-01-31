@@ -229,41 +229,118 @@ class Eventeditor extends Component {
 			} );
 			console.log( 'занятые комнаты', buzyRooms );
 			
+			// получим подходящие по размеру свободные
 			let suitableFreeRooms = suitableSizeRooms.filter( ( room ) => {
 				return buzyRooms.indexOf( room.id ) === -1;
 			} );
 			
 			console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
+// если подходящие свободные комнаты есть, формируем рекомендации
+			if ( suitableFreeRooms.length > 0 ) {
+				
+				for ( let i = 0; i < suitableFreeRooms.length; i++ ) {
+
+// почсчитаем суммарное количество пройденных этажей
+					let toWalk = 0;
+					for ( let k = 0; k < members.length;  k++ ) {
+						toWalk += Math.abs( +suitableFreeRooms[i].floor - members[k].homeFloor );
+					}
+					
+					recomendations.push( {
+						date: date,
+						room: suitableFreeRooms[i].id,
+						swap: [],
+						towalk: toWalk,
+					} );
+					recomendations.sort( ( a, b ) => {
+						if ( a.towalk < b.towalk ) { return -1 }
+						if ( a.towalk > b.towalk ) { return 1 }
+						if ( a.towalk === b.towalk ) { return 0 }
+					} );
+				}
+			}
+			console.log( 'рекомендации в свободных комнатах', recomendations );
+			if ( suitableFreeRooms.length === 0 ) {
 			
-			// получим мешающие события, которые находятся в подходящей комнате
-			let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
-				for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
-					if( suitableSizeRooms[i].id === event.room.id ) {
-							return true;
+// получим мешающие события, которые находятся в подходящей комнате
+				let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
+						for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
+							if( suitableSizeRooms[i].id === event.room.id ) {
+								return true;
+							}
+						}
+					}
+				);
+				console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
+				
+// незанятые неподходящие по размерам комнаты
+				let unsuitableFreeRooms = smallSizeRooms.filter( ( room ) => {
+					return buzyRooms.indexOf( room.id ) === -1;
+				} ) ;
+				
+				console.log( 'незанятые маленькие комнаты', unsuitableFreeRooms );
+				
+// получим мешающие события, которые могут быть перенесены (влезают в свободный интервал)
+				let candidatesToSwap = blockingEventsInSuitableRooms.filter( ( event ) => {
+					if ( moment(event.dateStart).utc().isAfter( moment( date.start ).utc(), 'minute' ) && moment(event.dateEnd).utc().subtract(1, 'seconds').isBefore( moment( date.end ).utc(), 'minute' ) ) {
+						return true;
+					}
+				});
+				console.log( 'кандидаты на перенос', candidatesToSwap );
+				
+// каждое мешающее событие (кол-во участников) сравним с вместимостью свободных маленьких переговорных. Получим один или несколько swap, если что-то можно перенести
+/**
+ * @type {Array} swaps массив возможных переносов.
+ */
+				let swaps = [];
+				for ( let i = 0; i < candidatesToSwap.length; i++ ) {
+					for ( let k = 0; k < unsuitableFreeRooms.length; k++ ) {
+						if ( candidatesToSwap[i].users.length <= +unsuitableFreeRooms[k].capacity ) {
+							swaps.push( {
+								event: candidatesToSwap[i],
+								room: unsuitableFreeRooms[k],
+							} );
+							unsuitableFreeRooms.splice( k, 1 );
+							break;
 						}
 					}
 				}
-			);
-			
-			console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
-			// для каждой из неподходящих проверить, свободен ли запрашиваемый интервал
-			
-			// если незанятых подходящих комнат нет, проверяем, находится ли каждое мешающее событие в подходящей комнате,
-			// и если да, то проверяем, можно ли его перенести в неподходящую по размерам комнату (при условии, что мешающее событие
-			// туда влезает) если можно перенести, делаем массив объектов swap
-			
-			// неподходящие по размеру комнаты [smallSizeRooms]
-			// мешающие события [pureBlockingEvents]
-			
-			// for ( let i = 0; i < pureBlockingEvents; i++ ) {
-			//
-			// }
-			
-			
-			// сделать массив меньших по размерам, но подходящих по времени
-			// сделать массив подходящих по размеру и свободных = suitableFreeRooms
-			let smallButEmptyRoms = [];
-
+				console.log( 'переносы', swaps );
+// если переносы есть, формируем рекомендации с переносами (сколько переносов, столько и рекомендаций)
+				if ( swaps.length > 0 ) {
+					for ( let i = 0; i < swaps.length; i++ ) {
+						recomendations.push( {
+							date: date,
+							room: swaps[i].event.room,
+							swap: swaps[i]
+						} )
+					}
+				}
+				console.log( 'рекомендации с переносами', recomendations );
+				
+// если переносов нет, получим список подходящих переговорок и время, когда они освободятся
+				if ( swaps.length === 0 ) {
+// сформируем из них объекты Recomendations и добавим их в массив recomendations.push()
+					for ( let i = 0; i < blockingEventsInSuitableRooms.length; i++ ) {
+						recomendations.push( {
+							date: {
+								start: blockingEventsInSuitableRooms[i].dateEnd,
+								end: '',
+							},
+							room: blockingEventsInSuitableRooms[i].room.id,
+							swap: []
+						} )
+					}
+// сортируем по дате освобождения
+					recomendations.sort( ( a, b ) => {
+						if ( moment(a.date.start).utc().isBefore( moment(b.date.start).utc(), 'minuts' ) ) { return -1 }
+						if ( moment(a.date.start).utc().isAfter( moment(b.date.start).utc(), 'minuts' ) ) { return 1 }
+						if ( moment(a.date.start).utc().isSame( moment(b.date.start).utc(), 'minuts' ) ) { return 0 }
+					} );
+					console.log( 'рекомендации', recomendations );
+				}
+			}
+	
 
 
 			// отсортировать массив подходящих и свободных по удаленности от всех участников
@@ -296,7 +373,7 @@ class Eventeditor extends Component {
 			};
 
 
-			// если это режим event и событие в прошлом, отображаем только выбранную переговорку
+			// если это режим event и событие в прошлом, отображаем только выбранную переговорку TODO этот код перенести куда-нибудь
 			if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
 				let date = {
 					start: this.props.data.event.dateStart,
