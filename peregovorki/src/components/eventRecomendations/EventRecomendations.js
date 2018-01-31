@@ -63,7 +63,7 @@ class EventRecomendationsEmpty extends Component {
 		if(!this.props.data.rooms) {
 			return null;
 		}
-		
+		console.log( 'rr', this.props );
 		let roomsIds = this.props.data.rooms;
 		//console.log( this.props.selectedRoom );
 		let rooms = roomsIds.map( (items, i)=>{
@@ -120,7 +120,7 @@ class EventRecomendationsEmpty extends Component {
 						isSelected = { true }
 					/>
 				)
-			} else if ( !this.props.isPast && this.props.mode === 'new' ) {
+			} else if ( !this.props.isPast && ( this.props.mode === 'new' || this.props.mode === 'event' ) ) {
 				return (
 					<Room
 						roomId = {item.room}

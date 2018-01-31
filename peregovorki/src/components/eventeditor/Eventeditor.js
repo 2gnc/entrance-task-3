@@ -113,6 +113,16 @@ class Eventeditor extends Component {
 			) {
 				this.getRecomendation();
 			}
+		}, 400 );
+		
+		setTimeout( () => {
+			if (
+				this.eventmode === 'event' &&
+				!this.butterflyEffect( this.props.data.event.dateStart ) &&
+				this.state.recomendations.length === 0
+			) {
+				this.changer();
+			}
 		}, 500 );
 		
 	}
