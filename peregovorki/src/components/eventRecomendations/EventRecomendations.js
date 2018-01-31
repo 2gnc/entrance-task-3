@@ -25,7 +25,6 @@ class EventRecomendationsEmpty extends Component {
 				let selectedRoomId = $( event.target.closest('.recomendation') ).attr( 'data-roomid' );
 				let selectedRoomName = $( event.target.closest('.recomendation') ).attr( 'data-roomname' );
 				let selectedRoomFloor = $( event.target.closest('.recomendation') ).attr( 'data-roomfloor' );
-				
 				this.props.parent.selectedRoomUpd( selectedRoomId, selectedRoomName, selectedRoomFloor );
 				if( this.state.selectedRoom !== this.props.selectedRoom ) {
 					this.setState({
@@ -39,10 +38,16 @@ class EventRecomendationsEmpty extends Component {
 	componentDidMount() {
 // если в пропсах пришла выбранная комната, устанавливаем ее в стейт.
 		setTimeout( () => {
-			if ( this.props.selectedRoom && this.state.selectedRoom === '' && this.props.isPast ) {
+			if ( this.props.selectedRoom && this.state.selectedRoom === '' ) {
 				this.setState({
 					selectedRoom: this.props.selectedRoom,
 				});
+			} else if ( !this.props.isPast &&  this.state.selectedRoom !== '' ) {
+				this.setState({
+					selectedRoom: '',
+				});
+			} else {
+				return false;
 			}
 		}, 500 );
 		
@@ -60,7 +65,7 @@ class EventRecomendationsEmpty extends Component {
 		}
 		
 		let roomsIds = this.props.data.rooms;
-		
+		//console.log( this.props.selectedRoom );
 		let rooms = roomsIds.map( (items, i)=>{
 			return (
 				<Room
@@ -118,13 +123,13 @@ class EventRecomendationsEmpty extends Component {
 			} else if ( !this.props.isPast && this.props.mode === 'new' ) {
 				return (
 					<Room
-						roomId = {item.id}
+						roomId = {item.room}
 						name = { getRoomName( item.room ) }
 						layout = 'inrecomendations'
 						floor = { getFloor( item.room ) }
 						time = { getTime( item ) }
 						key = {i}
-						isSelected = { false }
+						isSelected = { this.state.selectedRoom === item.room }
 					/>
 				)
 			} else {
