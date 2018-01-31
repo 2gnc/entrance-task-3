@@ -100,7 +100,7 @@ class Eventeditor extends Component {
 			} else {
 				return null;
 			}
-		}, 400);
+		}, 500);
 		
 /**
  * Вызываем получение рекомендации (в данном случае будет единственная комната, которую нужно будет отобразить)
@@ -113,7 +113,7 @@ class Eventeditor extends Component {
 			) {
 				this.getRecomendation();
 			}
-		}, 400 );
+		}, 500 );
 		
 	}
 	
@@ -172,209 +172,16 @@ class Eventeditor extends Component {
 			start: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + startInpt + ':00.000Z',
 			end: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + endInpt + ':00.000Z',
 		};
-		
-		//this.getRecomendation( EventDate, this.state.selectedUsers );
+	
 	setTimeout(this.getRecomendation, 100, EventDate, this.state.selectedUsers);
 	}
 
-	getRecomendation( date, members ) { //TODO если режим event изначально показывать пустые рекомендации
-		if( date ) {
-			let recomendations = [];
+	getRecomendation( date, members ) {
+		let recomendations = [];
+		if ( !date ) {
 
-			// отбираем события на нужный день
-			let blockingEvents = []; // события в день планируемого мероприятия
-			let allEvents = this.props.data.events;
-			let allEventsL = this.props.data.events.length;
-			for ( let i = 0; i < allEventsL; i++ ) {
-				if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
-					blockingEvents.push( allEvents[i] );
-				}
-			}
-			console.log( '!!все события в этот день',  blockingEvents );
-			// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
-			// получаем массив id событий, которые нужно удалить из списка мешающих событий
-			let idToRemove = [];
-			for ( let i = 0; i < blockingEvents.length; i++ ) {
-				console.log(  );
-				if (
-					!( ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateEnd ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.start ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.end ).utc(), 'minute' ) )  )
-				) {
-					idToRemove.push( blockingEvents[i].id );
-				}
-			}
-			// удаляем события, которые в списке "мешающих"
-			let pureBlockingEvents = blockingEvents.filter( ( item ) => {
-				return idToRemove.indexOf( item.id ) === -1;
-			} );
-			
-			console.log( '!события, которые могут помешать', pureBlockingEvents );
-
-			// выбрать переговорки, подходящие по вместимости
-			let participantsNum = members.length;
-			let smallSizeRooms = []; // неподходящие по размеру комнаты
-			let suitableSizeRooms = []; // подходящие по размеру комнаты
-			for ( let i = 0; i < this.props.data.rooms.length; i++ ) {
-				if ( this.props.data.rooms[i].capacity >= participantsNum ) {
-					suitableSizeRooms.push( this.props.data.rooms[i] );
-				} else {
-					smallSizeRooms.push( this.props.data.rooms[i] );
-				}
-			}
-			
-			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
-			
-			// для списка из подходящих исключить те, в которых "мешающие события", получим подходящие свободные
-			let buzyRooms = pureBlockingEvents.map( ( item ) => {
-				return item.room.id;
-			} );
-			console.log( 'занятые комнаты', buzyRooms );
-			
-			// получим подходящие по размеру свободные
-			let suitableFreeRooms = suitableSizeRooms.filter( ( room ) => {
-				return buzyRooms.indexOf( room.id ) === -1;
-			} );
-			
-			console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
-// если подходящие свободные комнаты есть, формируем рекомендации
-			if ( suitableFreeRooms.length > 0 ) {
-				
-				for ( let i = 0; i < suitableFreeRooms.length; i++ ) {
-
-// почсчитаем суммарное количество пройденных этажей
-					let toWalk = 0;
-					for ( let k = 0; k < members.length;  k++ ) {
-						toWalk += Math.abs( +suitableFreeRooms[i].floor - members[k].homeFloor );
-					}
-					
-					recomendations.push( {
-						date: date,
-						room: suitableFreeRooms[i].id,
-						swap: [],
-						towalk: toWalk,
-					} );
-					recomendations.sort( ( a, b ) => {
-						if ( a.towalk < b.towalk ) { return -1 }
-						if ( a.towalk > b.towalk ) { return 1 }
-						if ( a.towalk === b.towalk ) { return 0 }
-					} );
-				}
-			}
-			console.log( 'рекомендации в свободных комнатах', recomendations );
-			if ( suitableFreeRooms.length === 0 ) {
-			
-// получим мешающие события, которые находятся в подходящей комнате
-				let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
-						for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
-							if( suitableSizeRooms[i].id === event.room.id ) {
-								return true;
-							}
-						}
-					}
-				);
-				console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
-				
-// незанятые неподходящие по размерам комнаты
-				let unsuitableFreeRooms = smallSizeRooms.filter( ( room ) => {
-					return buzyRooms.indexOf( room.id ) === -1;
-				} ) ;
-				
-				console.log( 'незанятые маленькие комнаты', unsuitableFreeRooms );
-				
-// получим мешающие события, которые могут быть перенесены (влезают в свободный интервал)
-				let candidatesToSwap = blockingEventsInSuitableRooms.filter( ( event ) => {
-					if ( moment(event.dateStart).utc().isAfter( moment( date.start ).utc(), 'minute' ) && moment(event.dateEnd).utc().subtract(1, 'seconds').isBefore( moment( date.end ).utc(), 'minute' ) ) {
-						return true;
-					}
-				});
-				console.log( 'кандидаты на перенос', candidatesToSwap );
-				
-// каждое мешающее событие (кол-во участников) сравним с вместимостью свободных маленьких переговорных. Получим один или несколько swap, если что-то можно перенести
-/**
- * @type {Array} swaps массив возможных переносов.
- */
-				let swaps = [];
-				for ( let i = 0; i < candidatesToSwap.length; i++ ) {
-					for ( let k = 0; k < unsuitableFreeRooms.length; k++ ) {
-						if ( candidatesToSwap[i].users.length <= +unsuitableFreeRooms[k].capacity ) {
-							swaps.push( {
-								event: candidatesToSwap[i],
-								room: unsuitableFreeRooms[k],
-							} );
-							unsuitableFreeRooms.splice( k, 1 );
-							break;
-						}
-					}
-				}
-				console.log( 'переносы', swaps );
-// если переносы есть, формируем рекомендации с переносами (сколько переносов, столько и рекомендаций)
-				if ( swaps.length > 0 ) {
-					for ( let i = 0; i < swaps.length; i++ ) {
-						recomendations.push( {
-							date: date,
-							room: swaps[i].event.room,
-							swap: swaps[i]
-						} )
-					}
-				}
-				console.log( 'рекомендации с переносами', recomendations );
-				
-// если переносов нет, получим список подходящих переговорок и время, когда они освободятся
-				if ( swaps.length === 0 ) {
-// сформируем из них объекты Recomendations и добавим их в массив recomendations.push()
-					for ( let i = 0; i < blockingEventsInSuitableRooms.length; i++ ) {
-						recomendations.push( {
-							date: {
-								start: blockingEventsInSuitableRooms[i].dateEnd,
-								end: '',
-							},
-							room: blockingEventsInSuitableRooms[i].room.id,
-							swap: []
-						} )
-					}
-// сортируем по дате освобождения
-					recomendations.sort( ( a, b ) => {
-						if ( moment(a.date.start).utc().isBefore( moment(b.date.start).utc(), 'minuts' ) ) { return -1 }
-						if ( moment(a.date.start).utc().isAfter( moment(b.date.start).utc(), 'minuts' ) ) { return 1 }
-						if ( moment(a.date.start).utc().isSame( moment(b.date.start).utc(), 'minuts' ) ) { return 0 }
-					} );
-					console.log( 'рекомендации', recomendations );
-				}
-			}
-	
-
-
-			// отсортировать массив подходящих и свободных по удаленности от всех участников
-			// если массив подходящих свободных пустой, можно ли перенести мешающие события в переговорку поменьше
-			// если да, то сгенерировать массив свапов
-			// если свапы есть, добавить в рекомендации комнаты, которые можно освободить
-			// если свапов нет, вывести список переговорок, отсортированных по ближайшей освобождающейся (время окончания)
-
-
-	/**
-	 * @typedef {Object} Recommendation
-	 * @property {EventDate} date Дата и время проведения встречи.
-	 * @property {String} room Идентификатор переговорки.
-	 * @property {RoomsSwap[]} [swap] Необходимые замены переговорк для реализации рекомендации.
-	 */
-			let Recomendation = {
-				date: {},
-				room: '',
-				swap: [],
-			};
-
-	/**
-	 * @typedef {Object} RoomsSwap
-	 * @property {string} event Идентификатор встречи.
-	 * @property {String} room Новый идентификатор переговорки.
-	 */
-			let RoomsSwap = {
-				event: '',
-				room: '',
-			};
-
-
-			// если это режим event и событие в прошлом, отображаем только выбранную переговорку TODO этот код перенести куда-нибудь
-			if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
+			// если это режим event и событие в прошлом, отображаем только выбранную переговорку
+			if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) && this.state.recomendations.length === 0 ) {
 				let date = {
 					start: this.props.data.event.dateStart,
 					end: this.props.data.event.dateEnd,
@@ -384,57 +191,222 @@ class Eventeditor extends Component {
 					room: this.props.data.event.room,
 					swap: [],
 				};
-
 				recomendations.push( singleRecomendation );
-
 				this.setState({
 					recomendations: recomendations,
 				});
-
 				console.log( 'рекомендации:', this.state.recomendations );
-				// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку
-			} else if ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) {
-
-				// если это не режим event отображаем список рекомендаций
-			} else if ( this.eventmode !== 'event' ) {
-
-
-			} else {
-				return null;
+// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку, если другой режим - то просто рекомендации
 			}
-
-			return recomendations;
 		}
+		if( date ) {
+// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку, если другой режим - то просто рекомендации
+				if ( this.eventmode !== 'event' || ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) ) {
+// отбираем события на нужный день
+					let blockingEvents = []; // события в день планируемого мероприятия
+					let allEvents = this.props.data.events;
+					let allEventsL = this.props.data.events.length;
+					for ( let i = 0; i < allEventsL; i++ ) {
+						if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
+							blockingEvents.push( allEvents[i] );
+						}
+					}
+					//console.log( '!!все события в этот день',  blockingEvents );
+// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
+// получаем массив id событий, которые нужно удалить из списка мешающих событий
+					let idToRemove = [];
+					for ( let i = 0; i < blockingEvents.length; i++ ) {
+						console.log(  );
+						if (
+							!( ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateEnd ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.start ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.end ).utc(), 'minute' ) )  )
+						) {
+							idToRemove.push( blockingEvents[i].id );
+						}
+					}
+// удаляем события, которые в списке "мешающих"
+					let pureBlockingEvents = blockingEvents.filter( ( item ) => {
+						return idToRemove.indexOf( item.id ) === -1;
+					} );
+					
+					//console.log( '!события, которые могут помешать', pureBlockingEvents );
+					
+// выбрать переговорки, подходящие по вместимости
+					let participantsNum = members.length;
+					let smallSizeRooms = []; // неподходящие по размеру комнаты
+					let suitableSizeRooms = []; // подходящие по размеру комнаты
+					for ( let i = 0; i < this.props.data.rooms.length; i++ ) {
+						if ( this.props.data.rooms[i].capacity >= participantsNum ) {
+							suitableSizeRooms.push( this.props.data.rooms[i] );
+						} else {
+							smallSizeRooms.push( this.props.data.rooms[i] );
+						}
+					}
+					
+					//console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
+					
+// для списка из подходящих исключить те, в которых "мешающие события", получим подходящие свободные
+					let buzyRooms = pureBlockingEvents.map( ( item ) => {
+						return item.room.id;
+					} );
+					//console.log( 'занятые комнаты', buzyRooms );
+					
+// получим подходящие по размеру свободные
+					let suitableFreeRooms = suitableSizeRooms.filter( ( room ) => {
+						return buzyRooms.indexOf( room.id ) === -1;
+					} );
+					
+					//console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
+// если подходящие свободные комнаты есть, формируем рекомендации
+					if ( suitableFreeRooms.length > 0 ) {
+						
+						for ( let i = 0; i < suitableFreeRooms.length; i++ ) {
+							
+// почсчитаем суммарное количество пройденных этажей
+							let toWalk = 0;
+							for ( let k = 0; k < members.length;  k++ ) {
+								toWalk += Math.abs( +suitableFreeRooms[i].floor - members[k].homeFloor );
+							}
+							
+							recomendations.push( {
+								date: date,
+								room: suitableFreeRooms[i].id,
+								swap: [],
+								towalk: toWalk,
+							} );
+							recomendations.sort( ( a, b ) => {
+								if ( a.towalk < b.towalk ) { return -1 }
+								if ( a.towalk > b.towalk ) { return 1 }
+								if ( a.towalk === b.towalk ) { return 0 }
+							} );
+						}
+					}
+					console.log( 'рекомендации в свободных комнатах', recomendations );
+					this.setState({
+						recomendations: recomendations,
+					});
+// если подходящих свободных рекомендаций нет:
+					if ( suitableFreeRooms.length === 0 ) {
+// получим мешающие события, которые находятся в подходящей комнате
+						let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
+								for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
+									if( suitableSizeRooms[i].id === event.room.id ) {
+										return true;
+									}
+								}
+							}
+						);
+						//console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
+						
+// незанятые неподходящие по размерам комнаты
+						let unsuitableFreeRooms = smallSizeRooms.filter( ( room ) => {
+							return buzyRooms.indexOf( room.id ) === -1;
+						} ) ;
+						
+					//	console.log( 'незанятые маленькие комнаты', unsuitableFreeRooms );
+// получим мешающие события, которые могут быть перенесены (влезают в свободный интервал)
+						let candidatesToSwap = blockingEventsInSuitableRooms.filter( ( event ) => {
+							if ( moment(event.dateStart).utc().isAfter( moment( date.start ).utc(), 'minute' ) && moment(event.dateEnd).utc().subtract(1, 'seconds').isBefore( moment( date.end ).utc(), 'minute' ) ) {
+								return true;
+							}
+						});
+						//console.log( 'кандидаты на перенос', candidatesToSwap );
+						
+// каждое мешающее событие (кол-во участников) сравним с вместимостью свободных маленьких переговорных. Получим ноль, один или несколько swap, если что-то можно перенести
+/**
+ * @type {Array} swaps массив возможных переносов.
+ */
+						let swaps = [];
+						for ( let i = 0; i < candidatesToSwap.length; i++ ) {
+							for ( let k = 0; k < unsuitableFreeRooms.length; k++ ) {
+								if ( candidatesToSwap[i].users.length <= +unsuitableFreeRooms[k].capacity ) {
+									swaps.push( {
+										event: candidatesToSwap[i],
+										room: unsuitableFreeRooms[k],
+									} );
+									unsuitableFreeRooms.splice( k, 1 );
+									break;
+								}
+							}
+						}
+						//console.log( 'переносы', swaps );
+// если переносы есть, формируем рекомендации с переносами (сколько переносов, столько и рекомендаций)
+						if ( swaps.length > 0 ) {
+							for ( let i = 0; i < swaps.length; i++ ) {
+								recomendations.push( {
+									date: date,
+									room: swaps[i].event.room,
+									swap: swaps[i]
+								} )
+							}
+						}
+						console.log( 'рекомендации с переносами', recomendations );
+						this.setState({
+							recomendations: recomendations,
+						});
+// если переносов нет, получим список подходящих переговорок и время, когда они освободятся
+						if ( swaps.length === 0 ) {
+// сформируем из них объекты Recomendations и добавим их в массив recomendations.push()
+							for ( let i = 0; i < blockingEventsInSuitableRooms.length; i++ ) {
+								recomendations.push( {
+									date: {
+										start: blockingEventsInSuitableRooms[i].dateEnd,
+										end: '',
+									},
+									room: blockingEventsInSuitableRooms[i].room.id,
+									swap: []
+								} )
+							}
+// сортируем по дате освобождения
+							recomendations.sort( ( a, b ) => {
+								if ( moment(a.date.start).utc().isBefore( moment(b.date.start).utc(), 'minuts' ) ) { return -1 }
+								if ( moment(a.date.start).utc().isAfter( moment(b.date.start).utc(), 'minuts' ) ) { return 1 }
+								if ( moment(a.date.start).utc().isSame( moment(b.date.start).utc(), 'minuts' ) ) { return 0 }
+							} );
+							console.log( 'рекомендации', recomendations );
+							this.setState({
+								recomendations: recomendations,
+							});
+						}
+					}
+				} else {
+					return null;
+				}
+				return recomendations;
+			}
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
  * @returns {object}
  */
 	eventLoader() {
-		if(this.props.eventToDownload && this.props.data ) {
-			let obj = {};
-			let usersIds = this.props.data.event.users.map( (item) => {
-				return item.id;
-			});
-
-			obj.theme = this.props.data.event.title;
-			obj.participants = this.props.data.users.map( (item) => {
-				let x;
-				for ( let i = 0; i < usersIds.length; i ++ ) {
-					if( usersIds[i] === item.id ) { x = item }
-				}
-				if ( x ) { return x } else {return null}
-			}).filter( (val) => {
-				return val;
-			});
-			obj.dateMoment = this.props.data.event.dateStart;
-			obj.date = moment( this.props.data.event.dateStart ).utc().format( 'DD MMMM, YYYY' );
-			obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'HH:mm' ); 
-			obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'HH:mm' ); 
-			obj.room = String( this.props.data.event.room.id );
-			return obj;
+		if ( !this.props.data) {
+			return;
+		} else {
+			if(this.props.eventToDownload && this.props.data ) {
+				let obj = {};
+				let usersIds = this.props.data.event.users.map( (item) => {
+					return item.id;
+				});
+				
+				obj.theme = this.props.data.event.title;
+				obj.participants = this.props.data.users.map( (item) => {
+					let x;
+					for ( let i = 0; i < usersIds.length; i ++ ) {
+						if( usersIds[i] === item.id ) { x = item }
+					}
+					if ( x ) { return x } else {return null}
+				}).filter( (val) => {
+					return val;
+				});
+				obj.dateMoment = this.props.data.event.dateStart;
+				obj.date = moment( this.props.data.event.dateStart ).utc().format( 'DD MMMM, YYYY' );
+				obj.startTime = moment( this.props.data.event.dateStart ).utc().format( 'HH:mm' );
+				obj.endTime = moment( this.props.data.event.dateEnd ).utc().format( 'HH:mm' );
+				obj.room = String( this.props.data.event.room.id );
+				return obj;
 			} else {
-			return null;
+				return null;
+			}
 		}
 	}
 	
@@ -851,7 +823,6 @@ class Eventeditor extends Component {
 			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime + ' ' + this.eventLoader().theme;
 		}
 		
-console.log( 'пропс', this.props, 'стейт', this.state );
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -1037,7 +1008,7 @@ console.log( 'пропс', this.props, 'стейт', this.state );
 								<EventParticipants users = {this.state} parent = {this} blockInpts = { blockInpts() } />
 							</div>
 							<div className='event__separator'></div>
-							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} isPast = { blockInpts() } />
+							<EventRecomendations parent = {this} selectedRoom = {this.state.selectedRoom} recomendations = {this.state.recomendations} isPast = { blockInpts() } mode = { this.eventmode }/>
 						</div>
 					</div>
 
