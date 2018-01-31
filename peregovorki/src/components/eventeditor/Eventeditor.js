@@ -190,26 +190,27 @@ class Eventeditor extends Component {
 					blockingEvents.push( allEvents[i] );
 				}
 			}
+			console.log( '!!все события в этот день',  blockingEvents );
 			// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
+			// получаем массив id событий, которые нужно удалить из списка мешающих событий
 			let idToRemove = [];
 			for ( let i = 0; i < blockingEvents.length; i++ ) {
-				if ( moment( blockingEvents[i].dateEnd ).utc().subtract( 1, 'seconds' ).isBefore( moment( date.start ).utc(), 'minute' ) ||
-					moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
+				console.log(  );
+				if (
+					!( ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateEnd ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) )
+				) {
 					idToRemove.push( blockingEvents[i].id );
 				}
 			}
-			while ( idToRemove.length > 0 ) {
-				for ( let i = 0; i < blockingEvents.length; i++ ) {
-					if ( blockingEvents[i].id === idToRemove[0] ) {
-						blockingEvents.splice( i, 1 );
-						idToRemove.shift();
-					}
-				}
-			}
-			console.log( 'события, которые могут помешать', blockingEvents );
+			// удаляем события, которые в списке "мешающих"
+			let pureBlockingEvents = blockingEvents.filter( ( item ) => {
+				return idToRemove.indexOf( item.id ) === -1;
+			} );
+			
+			console.log( '!события, которые могут помешать', pureBlockingEvents );
 
 			// выбрать переговорки, подходящие по вместимости
-			let participantsNum = this.state.selectedUsers.length;
+			let participantsNum = members.length;
 			let smallSizeRooms = []; // неподходящие по размеру комнаты
 			let suitableSizeRooms = []; // подходящие по размеру комнаты
 			for ( let i = 0; i < this.props.data.rooms.length; i++ ) {
@@ -219,9 +220,11 @@ class Eventeditor extends Component {
 					smallSizeRooms.push( this.props.data.rooms[i] );
 				}
 			}
+			
 			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
+			
 			// для списка из подходящих исключить те, в которых "мешающие события", получим подходящие свободные
-			let buzyRooms = blockingEvents.map( ( item ) => {
+			let buzyRooms = pureBlockingEvents.map( ( item ) => {
 				return item.room.id;
 			} );
 			console.log( 'занятые комнаты', buzyRooms );
@@ -231,12 +234,36 @@ class Eventeditor extends Component {
 			} );
 			
 			console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
+			
+			// получим мешающие события, которые находятся в подходящей комнате
+			let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
+				for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
+					if( suitableSizeRooms[i].id === event.room.id ) {
+							return true;
+						}
+					}
+				}
+			);
+			
+			console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
 			// для каждой из неподходящих проверить, свободен ли запрашиваемый интервал
 			
-			// сделать массив меньших по размерам, но подходящих
-			// сделать массив подходящих по размеру и свободных
+			// если незанятых подходящих комнат нет, проверяем, находится ли каждое мешающее событие в подходящей комнате,
+			// и если да, то проверяем, можно ли его перенести в неподходящую по размерам комнату (при условии, что мешающее событие
+			// туда влезает) если можно перенести, делаем массив объектов swap
+			
+			// неподходящие по размеру комнаты [smallSizeRooms]
+			// мешающие события [pureBlockingEvents]
+			
+			// for ( let i = 0; i < pureBlockingEvents; i++ ) {
+			//
+			// }
+			
+			
+			// сделать массив меньших по размерам, но подходящих по времени
+			// сделать массив подходящих по размеру и свободных = suitableFreeRooms
 			let smallButEmptyRoms = [];
-			let suitableEmptyRooms = [];
+
 
 
 			// отсортировать массив подходящих и свободных по удаленности от всех участников
