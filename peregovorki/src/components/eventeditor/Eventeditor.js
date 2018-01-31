@@ -50,6 +50,7 @@ class Eventeditor extends Component {
 		this.getRecomendation = this.getRecomendation.bind( this );
 		this.deleteDelete = this.deleteDelete.bind( this );
 		this.changerTest = this.changerTest.bind( this );
+		this.butterflyEffect = this.butterflyEffect.bind( this );
 
 		this.state = {
 			selectedUsers: [],
@@ -99,8 +100,37 @@ class Eventeditor extends Component {
 			} else {
 				return null;
 			}
-		}, 300);
+		}, 400);
+		
+/**
+ * Вызываем получение рекомендации (в данном случае будет единственная комната, которую нужно будет отобразить)
+ */
+		setTimeout( () => {
+			if (
+					this.eventmode === 'event' &&
+					this.butterflyEffect( this.props.data.event.dateStart ) &&
+					this.state.recomendations.length === 0
+			) {
+				this.getRecomendation();
+			}
+		}, 400 );
+		
 	}
+	
+/**
+ * Function isItPast определяет, является ли указанный момент времени в прошлом с точностью до минуты.
+ * @param {String} datetime строка с датой и временем в формате YYYY-MM-DDTHH:mm:ss.000Z
+ */
+	butterflyEffect( datetime ) {
+		if ( datetime ) {
+			let effect = moment(moment(datetime).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'minute' )
+			return effect;
+		} else {
+			return true;
+		}
+		
+}
+
 /**
  * Function changerTest обрабатывает изменения в datepicker-e
  * @param {*|moment()} dd выбранная дата 
@@ -110,37 +140,271 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'new' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else if ( this.eventmode === 'event' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else if ( this.eventmode === 'make/:data' ) {
 			this.setState({
 				dateInPicker: dd,
-			})
+			});
 		} else {
 			return null;
 		}
+		setTimeout( this.changer, 100 );
 	}
 
 /**
- * Function changer запускает получение рекомендаций
+ * Function changer обрабатывает начало и окончание события и запускает получение рекомендаций
  */
 	changer() {
-		this.getRecomendation();
-		console.log( 'changer', this );
+
+		let dateInpt = $( '#eventDate' ).val();
+		let startInpt = $( '#timeStart' ).val();
+		let endInpt = $( '#timeEnd' ).val();
+/**
+ * @typedef {Object} EventDate Желаемое время начала и окончания события
+ * @property {String} start Timestamp начала встречи. "YYYY-MM-DDTHH:mm:ss.SSSZ"
+ * @property {String} end Timestamp окончания встречи. "YYYY-MM-DDTHH:mm:ss.SSSZ"
+ */
+		let EventDate = {
+			start: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + startInpt + ':00.000Z',
+			end: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + endInpt + ':00.000Z',
+		};
+		
+		//this.getRecomendation( EventDate, this.state.selectedUsers );
+	setTimeout(this.getRecomendation, 100, EventDate, this.state.selectedUsers);
 	}
 
-	getRecomendation() {
-		let recomendations = [];
-		let recomendation = {};
-		
-		this.setState({
-			recomendations: recomendations,
-		});
-		
-		return recomendations;
+	getRecomendation( date, members ) { //TODO если режим event изначально показывать пустые рекомендации
+		if( date ) {
+			let recomendations = [];
+
+			// отбираем события на нужный день
+			let blockingEvents = []; // события в день планируемого мероприятия
+			let allEvents = this.props.data.events;
+			let allEventsL = this.props.data.events.length;
+			for ( let i = 0; i < allEventsL; i++ ) {
+				if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
+					blockingEvents.push( allEvents[i] );
+				}
+			}
+			console.log( '!!все события в этот день',  blockingEvents );
+			// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
+			// получаем массив id событий, которые нужно удалить из списка мешающих событий
+			let idToRemove = [];
+			for ( let i = 0; i < blockingEvents.length; i++ ) {
+				console.log(  );
+				if (
+					!( ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateStart ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateEnd ).utc().isBefore( moment( date.end ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.start ).utc(), 'minute' ) ) || ( moment( blockingEvents[i].dateStart ).utc().isBefore( moment( date.start ).utc(), 'minute' ) && moment( blockingEvents[i].dateEnd ).utc().isAfter( moment( date.end ).utc(), 'minute' ) )  )
+				) {
+					idToRemove.push( blockingEvents[i].id );
+				}
+			}
+			// удаляем события, которые в списке "мешающих"
+			let pureBlockingEvents = blockingEvents.filter( ( item ) => {
+				return idToRemove.indexOf( item.id ) === -1;
+			} );
+			
+			console.log( '!события, которые могут помешать', pureBlockingEvents );
+
+			// выбрать переговорки, подходящие по вместимости
+			let participantsNum = members.length;
+			let smallSizeRooms = []; // неподходящие по размеру комнаты
+			let suitableSizeRooms = []; // подходящие по размеру комнаты
+			for ( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].capacity >= participantsNum ) {
+					suitableSizeRooms.push( this.props.data.rooms[i] );
+				} else {
+					smallSizeRooms.push( this.props.data.rooms[i] );
+				}
+			}
+			
+			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
+			
+			// для списка из подходящих исключить те, в которых "мешающие события", получим подходящие свободные
+			let buzyRooms = pureBlockingEvents.map( ( item ) => {
+				return item.room.id;
+			} );
+			console.log( 'занятые комнаты', buzyRooms );
+			
+			// получим подходящие по размеру свободные
+			let suitableFreeRooms = suitableSizeRooms.filter( ( room ) => {
+				return buzyRooms.indexOf( room.id ) === -1;
+			} );
+			
+			console.log( 'незанятые подходящие комнаты', suitableFreeRooms );
+// если подходящие свободные комнаты есть, формируем рекомендации
+			if ( suitableFreeRooms.length > 0 ) {
+				
+				for ( let i = 0; i < suitableFreeRooms.length; i++ ) {
+
+// почсчитаем суммарное количество пройденных этажей
+					let toWalk = 0;
+					for ( let k = 0; k < members.length;  k++ ) {
+						toWalk += Math.abs( +suitableFreeRooms[i].floor - members[k].homeFloor );
+					}
+					
+					recomendations.push( {
+						date: date,
+						room: suitableFreeRooms[i].id,
+						swap: [],
+						towalk: toWalk,
+					} );
+					recomendations.sort( ( a, b ) => {
+						if ( a.towalk < b.towalk ) { return -1 }
+						if ( a.towalk > b.towalk ) { return 1 }
+						if ( a.towalk === b.towalk ) { return 0 }
+					} );
+				}
+			}
+			console.log( 'рекомендации в свободных комнатах', recomendations );
+			if ( suitableFreeRooms.length === 0 ) {
+			
+// получим мешающие события, которые находятся в подходящей комнате
+				let blockingEventsInSuitableRooms = pureBlockingEvents.filter( ( event ) => {
+						for ( let i = 0; i < suitableSizeRooms.length; i++ ) {
+							if( suitableSizeRooms[i].id === event.room.id ) {
+								return true;
+							}
+						}
+					}
+				);
+				console.log( 'события в подходящих комнатах', blockingEventsInSuitableRooms );
+				
+// незанятые неподходящие по размерам комнаты
+				let unsuitableFreeRooms = smallSizeRooms.filter( ( room ) => {
+					return buzyRooms.indexOf( room.id ) === -1;
+				} ) ;
+				
+				console.log( 'незанятые маленькие комнаты', unsuitableFreeRooms );
+				
+// получим мешающие события, которые могут быть перенесены (влезают в свободный интервал)
+				let candidatesToSwap = blockingEventsInSuitableRooms.filter( ( event ) => {
+					if ( moment(event.dateStart).utc().isAfter( moment( date.start ).utc(), 'minute' ) && moment(event.dateEnd).utc().subtract(1, 'seconds').isBefore( moment( date.end ).utc(), 'minute' ) ) {
+						return true;
+					}
+				});
+				console.log( 'кандидаты на перенос', candidatesToSwap );
+				
+// каждое мешающее событие (кол-во участников) сравним с вместимостью свободных маленьких переговорных. Получим один или несколько swap, если что-то можно перенести
+/**
+ * @type {Array} swaps массив возможных переносов.
+ */
+				let swaps = [];
+				for ( let i = 0; i < candidatesToSwap.length; i++ ) {
+					for ( let k = 0; k < unsuitableFreeRooms.length; k++ ) {
+						if ( candidatesToSwap[i].users.length <= +unsuitableFreeRooms[k].capacity ) {
+							swaps.push( {
+								event: candidatesToSwap[i],
+								room: unsuitableFreeRooms[k],
+							} );
+							unsuitableFreeRooms.splice( k, 1 );
+							break;
+						}
+					}
+				}
+				console.log( 'переносы', swaps );
+// если переносы есть, формируем рекомендации с переносами (сколько переносов, столько и рекомендаций)
+				if ( swaps.length > 0 ) {
+					for ( let i = 0; i < swaps.length; i++ ) {
+						recomendations.push( {
+							date: date,
+							room: swaps[i].event.room,
+							swap: swaps[i]
+						} )
+					}
+				}
+				console.log( 'рекомендации с переносами', recomendations );
+				
+// если переносов нет, получим список подходящих переговорок и время, когда они освободятся
+				if ( swaps.length === 0 ) {
+// сформируем из них объекты Recomendations и добавим их в массив recomendations.push()
+					for ( let i = 0; i < blockingEventsInSuitableRooms.length; i++ ) {
+						recomendations.push( {
+							date: {
+								start: blockingEventsInSuitableRooms[i].dateEnd,
+								end: '',
+							},
+							room: blockingEventsInSuitableRooms[i].room.id,
+							swap: []
+						} )
+					}
+// сортируем по дате освобождения
+					recomendations.sort( ( a, b ) => {
+						if ( moment(a.date.start).utc().isBefore( moment(b.date.start).utc(), 'minuts' ) ) { return -1 }
+						if ( moment(a.date.start).utc().isAfter( moment(b.date.start).utc(), 'minuts' ) ) { return 1 }
+						if ( moment(a.date.start).utc().isSame( moment(b.date.start).utc(), 'minuts' ) ) { return 0 }
+					} );
+					console.log( 'рекомендации', recomendations );
+				}
+			}
+	
+
+
+			// отсортировать массив подходящих и свободных по удаленности от всех участников
+			// если массив подходящих свободных пустой, можно ли перенести мешающие события в переговорку поменьше
+			// если да, то сгенерировать массив свапов
+			// если свапы есть, добавить в рекомендации комнаты, которые можно освободить
+			// если свапов нет, вывести список переговорок, отсортированных по ближайшей освобождающейся (время окончания)
+
+
+	/**
+	 * @typedef {Object} Recommendation
+	 * @property {EventDate} date Дата и время проведения встречи.
+	 * @property {String} room Идентификатор переговорки.
+	 * @property {RoomsSwap[]} [swap] Необходимые замены переговорк для реализации рекомендации.
+	 */
+			let Recomendation = {
+				date: {},
+				room: '',
+				swap: [],
+			};
+
+	/**
+	 * @typedef {Object} RoomsSwap
+	 * @property {string} event Идентификатор встречи.
+	 * @property {String} room Новый идентификатор переговорки.
+	 */
+			let RoomsSwap = {
+				event: '',
+				room: '',
+			};
+
+
+			// если это режим event и событие в прошлом, отображаем только выбранную переговорку TODO этот код перенести куда-нибудь
+			if ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) ) {
+				let date = {
+					start: this.props.data.event.dateStart,
+					end: this.props.data.event.dateEnd,
+				};
+				let singleRecomendation = {
+					date: date,
+					room: this.props.data.event.room,
+					swap: [],
+				};
+
+				recomendations.push( singleRecomendation );
+
+				this.setState({
+					recomendations: recomendations,
+				});
+
+				console.log( 'рекомендации:', this.state.recomendations );
+				// если это режим event и событие в будущем, отображаем список рекомендаций и выбранную переговорку
+			} else if ( this.eventmode === 'event' && !this.butterflyEffect( this.props.data.event.dateStart ) ) {
+
+				// если это не режим event отображаем список рекомендаций
+			} else if ( this.eventmode !== 'event' ) {
+
+
+			} else {
+				return null;
+			}
+
+			return recomendations;
+		}
 	}
 /**
  * Function eventLoader Загружает и обрабатывает данные о событии. Возвращает объект с данными о событии.
@@ -180,7 +444,6 @@ class Eventeditor extends Component {
  * @param {object} eventObj Результат выполнения eventLoader()
  */
 	eventShow( loader ) {
-		console.log( 'данные о событии', loader );
 		if ( this.props.eventToDownload && this.props.data.event ) {
 			let themeInpt = $( '#eventTheme' );
 			let DateInpt = $( '#eventDate' );
@@ -259,9 +522,11 @@ class Eventeditor extends Component {
 		let users = $( '#eventUsersInpt' );
 		let date = $( '#eventDate' );
 		let startInpt = $( '#timeStart' );
-		let startTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + startInpt.val();
+		let startTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + startInpt.val() + ':00.000Z';
 		let endInpt = $( '#timeEnd' );
-		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val();
+		let endTime = this.state.dateInPicker.format('YYYY-MM-DD') + 'T' + endInpt.val() + ':00.000Z';
+	
+		console.log( 'butterflyEffect', startTime, this.butterflyEffect( startTime ) );
 		
 		this.errors = []; // сбрасываем ошибки, если валидация запусткается повторно
 		
@@ -273,12 +538,8 @@ class Eventeditor extends Component {
 			errors.push( 'мало участников' );
 			if( !users.hasClass('inpt--error') ) {users.addClass( 'inpt--error' );}
 		}
-		if ( this.eventmode !== 'event' &&  this.state.dateInPicker.isBefore( moment(), 'day' ) ) { // дата в прошлом (для новых событий)
-			errors.push( 'дата события в прошлом' );
-			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
-		}
-		if ( this.eventmode === 'event' && moment(startTime).utc().isBefore( moment().utc(), 'minute' ) ) { // дата в прошлом для режима event с точностью до минуты
-			errors.push( 'вы пытаетесь перенести событие в прошлое' );
+		if ( this.butterflyEffect( startTime ) ) { // дата в прошлом для режима event с точностью до минуты
+			errors.push( 'вы пытаетесь вмешаться в прошлое' );
 			if( !date.hasClass('inpt--error') ) {date.addClass( 'inpt--error' );}
 			if( !startInpt.hasClass('inpt--error') ) {startInpt.addClass( 'inpt--error' );}
 			if( !endInpt.hasClass('inpt--error') ) {endInpt.addClass( 'inpt--error' );}
@@ -304,8 +565,8 @@ class Eventeditor extends Component {
 						return item.id;
 					}),
 					eventRoom: this.state.selectedRoom,
-					eventStart: moment( startTime ).utc('981Z'),
-					eventEnd: moment( endTime ).utc('981Z'),
+					eventStart: moment( startTime ).utc(),
+					eventEnd: moment( endTime ).utc(),
 				}
 			);
 		}
@@ -339,7 +600,7 @@ class Eventeditor extends Component {
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
 * @parpam {object} e Событие клика на кнопку "Сохранить"
 */
-	saveEvent(e) { // TODO запустить мутации
+	saveEvent(e) { // TODO проверять доступность комнаты непосредственно перед записью
 		console.log( 'save clicked' );
 		e.preventDefault();
 		
@@ -524,6 +785,7 @@ class Eventeditor extends Component {
 	handleAddUser( user ) {
 		if ( user ) {
 			this.state.selectedUsers.push(user);
+			this.changer();
 		}
 	}
 
@@ -533,6 +795,7 @@ class Eventeditor extends Component {
 			if(item.login === user) { x = i } return null;
 		});
 		this.state.selectedUsers.splice( x, [1]);
+		this.changer();
 	}
 
 	fakeRequest( value, cb ) {
@@ -562,11 +825,11 @@ class Eventeditor extends Component {
 			return null;
 		}
 /**
- * Function blockInpts определяет, находится ли время начала события в прошлом относительно текущего момента времени
+ * Function blockInpts определяет, нужно ли блокировать форму для изменений
  * @return {boolean}
  */
 		let blockInpts = () => {
-			return ( this.eventmode === 'event' && moment(moment(this.props.data.event.dateStart).utc().format( 'YYYY-MM-DDTHH:mm' )).isBefore( moment(moment().format( 'YYYY-MM-DDTHH:mm' )), 'hour' ) )? ( true ) : ( false );
+			return ( this.eventmode === 'event' && this.butterflyEffect( this.props.data.event.dateStart ) );
 		};
 /**
  * Заполняем изначальных участников для режима event
@@ -587,7 +850,8 @@ class Eventeditor extends Component {
 		if ( this.eventmode === 'event' && this.initialEventInfo === '' ) {
 			this.initialEventInfo = this.eventLoader().date + ', ' + this.eventLoader().startTime + ' - ' + this.eventLoader().endTime + ' ' + this.eventLoader().theme;
 		}
-
+		
+console.log( 'пропс', this.props, 'стейт', this.state );
 /**
  * Function showModal отпределяет, нужно ли показывать модальное окно и если нужно, то какое именно.
  * @returns Компонент <Modal /> с параметрами.
@@ -605,7 +869,6 @@ class Eventeditor extends Component {
 				return null;
 			}
 		};
-console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
 /**
  * Function getHeading определяет, какой выводить заголовок.
  * @returns {string} Строка заголовка.
@@ -642,7 +905,15 @@ console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
  * @type {string} 
  */
 		let target;
-		let block = blockInpts();
+/*
+ * @const block нужно или нет дизейблить поля ввода.
+ * @type {Boolean}
+ */
+		let block;
+		if ( this.eventmode === 'event' ) {
+			block = this.butterflyEffect( this.props.data.event.dateStart );
+		}
+		
 		return (
 			<div className='App__wrapper'>
 				<Header hasButton = {false} />
@@ -791,19 +1062,23 @@ console.log( this.initialEventUsers, this.initialEventRoom,  this.state );
 }
 
 const queryAll = gql ` query ($id: ID!) {
- users {id login homeFloor avatarUrl }
-
-  event (id: $id) {
-    title
-    dateStart
-    dateEnd
-    users {
-      id
-    }
-    room {
-      id
-    }
-  }
+	users { id login homeFloor avatarUrl }
+	
+	events { id title dateStart dateEnd users { id } room { id } }
+	
+	rooms { id title capacity floor }
+	
+	event (id: $id) {
+	  title
+	  dateStart
+	  dateEnd
+	  users {
+	    id
+	  }
+	  room {
+	    id
+	  }
+	}
 } `;
 
 export default compose(

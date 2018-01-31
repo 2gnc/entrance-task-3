@@ -50,15 +50,14 @@ class EventRecomendationsEmpty extends Component {
 	}
 	
 	render() {
-		/*Заглушка
-		* тут будем получать массив подходящих на дату-время комнат
+		/** Заглушка
+		* Редерит полученные рекомендации
 		* */
 		if(!this.props.data.rooms) {
 			return null;
 		}
 		
 		let roomsIds = this.props.data.rooms;
-		
 		
 		let rooms = roomsIds.map( (items, i)=>{
 			return (
@@ -72,18 +71,74 @@ class EventRecomendationsEmpty extends Component {
 				/>
 			);
 		});
+		
+		const getRoomName = ( roomId ) => {
+			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].id === roomId ) {
+					return this.props.data.rooms[i].title
+				}
+			}
+		};
+		
+		const getFloor = ( roomId ) => {
+			for( let i = 0; i < this.props.data.rooms.length; i++ ) {
+				if ( this.props.data.rooms[i].id === roomId ) {
+					return this.props.data.rooms[i].floor
+				}
+			}
+		};
+		
+		const getTime = ( recomendation ) => {
+			let timeStart = moment( recomendation.date.start ).utc().format( 'HH:mm' );
+			let timeEnd = moment( recomendation.date.end ).utc().format( 'HH:mm' );
+			return timeStart + ' - ' + timeEnd;
+		};
+		
+		let recomendations = this.props.recomendations.map( ( item, i ) => {
+			return (
+				<Room
+					roomId = {item.id}
+					name = { getRoomName( item.room.id ) }
+					layout = 'inrecomendations'
+					floor = { getFloor( item.room.id ) }
+					time = { getTime( item ) }
+					key = {i}
+					isSelected = { true }
+				/>
+			)
+		} );
+		
 		/*Конец заглушки*/
-		return (
-			<div className='event__col event__col--recomendation'>
-				<div className='label'>Рекомендованные переговорки</div>
-				<div className='recomendation__box'>
-					{rooms}
+		if ( this.props.isPast && this.props.recomendations.length === 1 ) {
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Ваша переговорка: </div>
+					<div className='recomendation__box'>
+						{recomendations}
+					</div>
 				</div>
-			</div>
-		)
+			)
+		} else if ( !this.props.isPast && this.props.recomendations.length >= 1 ) {
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Рекомендованные переговорки</div>
+					<div className='recomendation__box'>
+						{rooms}
+					</div>
+				</div>
+			)
+		} else {
+			return (
+				<div className='event__col event__col--recomendation'>
+					<div className='label'>Рекомендованные переговорки</div>
+					<div className='recomendation__box'>
+						{rooms}
+					</div>
+				</div>
+			)
+		}
 	}
 }
-
 
 const roomsQuery = gql`
 	query {
