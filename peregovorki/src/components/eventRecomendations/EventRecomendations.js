@@ -93,21 +93,43 @@ class EventRecomendationsEmpty extends Component {
 		const getTime = ( recomendation ) => {
 			let timeStart = moment( recomendation.date.start ).utc().format( 'HH:mm' );
 			let timeEnd = moment( recomendation.date.end ).utc().format( 'HH:mm' );
-			return timeStart + ' - ' + timeEnd;
+			if ( timeStart !== 'Invalid date' && timeEnd !== 'Invalid date' ) {
+				return timeStart + ' - ' + timeEnd;
+			} else {
+				return '?? - ??';
+			}
 		};
 		
+		
+		
 		let recomendations = this.props.recomendations.map( ( item, i ) => {
-			return (
-				<Room
-					roomId = {item.id}
-					name = { getRoomName( item.room.id ) }
-					layout = 'inrecomendations'
-					floor = { getFloor( item.room.id ) }
-					time = { getTime( item ) }
-					key = {i}
-					isSelected = { true }
-				/>
-			)
+			if ( this.props.isPast ) {
+				return (
+					<Room
+						roomId = {item.id}
+						name = { getRoomName( item.room.id ) }
+						layout = 'inrecomendations'
+						floor = { getFloor( item.room.id ) }
+						time = { getTime( item ) }
+						key = {i}
+						isSelected = { true }
+					/>
+				)
+			} else if ( !this.props.isPast && this.props.mode === 'new' ) {
+				return (
+					<Room
+						roomId = {item.id}
+						name = { getRoomName( item.room ) }
+						layout = 'inrecomendations'
+						floor = { getFloor( item.room ) }
+						time = { getTime( item ) }
+						key = {i}
+						isSelected = { false }
+					/>
+				)
+			} else {
+				return null;
+			}
 		} );
 		
 		/*Конец заглушки*/
@@ -125,7 +147,7 @@ class EventRecomendationsEmpty extends Component {
 				<div className='event__col event__col--recomendation'>
 					<div className='label'>Рекомендованные переговорки</div>
 					<div className='recomendation__box'>
-						{rooms}
+						{recomendations}
 					</div>
 				</div>
 			)
@@ -134,7 +156,7 @@ class EventRecomendationsEmpty extends Component {
 				<div className='event__col event__col--recomendation'>
 					<div className='label'>Рекомендованные переговорки</div>
 					<div className='recomendation__box'>
-						{rooms}
+						{recomendations}
 					</div>
 				</div>
 			)

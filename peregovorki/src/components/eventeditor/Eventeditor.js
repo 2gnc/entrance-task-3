@@ -279,11 +279,12 @@ class Eventeditor extends Component {
 								if ( a.towalk === b.towalk ) { return 0 }
 							} );
 						}
+						console.log( 'рекомендации в свободных комнатах', recomendations );
+						this.setState({
+							recomendations: recomendations,
+						});
 					}
-					console.log( 'рекомендации в свободных комнатах', recomendations );
-					this.setState({
-						recomendations: recomendations,
-					});
+					
 // если подходящих свободных рекомендаций нет:
 					if ( suitableFreeRooms.length === 0 ) {
 // получим мешающие события, которые находятся в подходящей комнате
@@ -334,15 +335,18 @@ class Eventeditor extends Component {
 							for ( let i = 0; i < swaps.length; i++ ) {
 								recomendations.push( {
 									date: date,
-									room: swaps[i].event.room,
+									room: swaps[i].event.room.id,
 									swap: swaps[i]
 								} )
 							}
+							console.log( 'рекомендации с переносами', recomendations );
+							this.setState({
+								recomendations: recomendations,
+							});
+							//console.log( 'стейт', this.state.recomendations );
+							//this.forceUpdate();
 						}
-						console.log( 'рекомендации с переносами', recomendations );
-						this.setState({
-							recomendations: recomendations,
-						});
+						
 // если переносов нет, получим список подходящих переговорок и время, когда они освободятся
 						if ( swaps.length === 0 ) {
 // сформируем из них объекты Recomendations и добавим их в массив recomendations.push()
