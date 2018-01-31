@@ -173,27 +173,41 @@ class Eventeditor extends Component {
 			end: moment( dateInpt, 'DD MMM, YYYY' ).format( 'YYYY-MM-DD' ) + 'T' + endInpt + ':00.000Z',
 		};
 		
-		this.getRecomendation( EventDate, this.state.selectedUsers );
+		//this.getRecomendation( EventDate, this.state.selectedUsers );
+	setTimeout(this.getRecomendation, 100, EventDate, this.state.selectedUsers);
 	}
 
 	getRecomendation( date, members ) { //TODO если режим event изначально показывать пустые рекомендации
 		if( date ) {
 			let recomendations = [];
 
-			console.log( 'getRecomendation', date );
-			console.log( 'getRecomendation', members );
-
-			// отбираем события на нужный день с датой окончания ранее плановой даты нового события
-			let targetEvents = [];
+			// отбираем события на нужный день
+			let targetEvents = []; // события в день планируемого мероприятия
 			let allEvents = this.props.data.events;
 			let allEventsL = this.props.data.events.length;
 			for ( let i = 0; i < allEventsL; i++ ) {
-				//console.log( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) );
 				if ( moment(allEvents[i].dateStart).utc().isSame( moment( date.start ).utc(), 'day' ) ) {
 					targetEvents.push( allEvents[i] );
 				}
 			}
-			console.log( 'события сегодня', targetEvents );
+			// удаляем те, которые оканчиваются до планового начала события (окончание уменьшаем на 1 сек, чтобы в выборку не попадали те, которые заканчиваются впрритык)
+			let idToRemove = [];
+			for ( let i = 0; i < targetEvents.length; i++ ) {
+				if ( moment( targetEvents[i].dateEnd ).utc().subtract( 1, 'seconds' ).isBefore( moment( date.start ).utc(), 'minute' ) ||
+					moment( targetEvents[i].dateStart ).utc().isBefore( moment( date.start ).utc().subtract( 1, 'seconds' ), 'minute' ) ) {
+					idToRemove.push( targetEvents[i].id );
+				}
+			}
+			while ( idToRemove.length > 0 ) {
+				for ( let i = 0; i < targetEvents.length; i++ ) {
+					if ( targetEvents[i].id === idToRemove[0] ) {
+						targetEvents.splice( i, 1 );
+						idToRemove.shift();
+					}
+				}
+			}
+			console.log( 'события, которые могут помешать', targetEvents );
+
 			// выбрать переговорки, подходящие по вместимости
 			let participantsNum = this.state.selectedUsers.length;
 			let smallSizeRooms = []; // неподходящие по размеру комнаты
@@ -205,7 +219,10 @@ class Eventeditor extends Component {
 					smallSizeRooms.push( this.props.data.rooms[i] );
 				}
 			}
-			// для каждой из подходящих и неподходящих проверить, свободный ли запрашиваемый интервал
+			console.log( 'подходящие по размеру', suitableSizeRooms, 'неподходящие по размеру', smallSizeRooms );
+			// для списка из подходящих исключить те, в которых "мешающие события"
+			// для каждой из неподходящих проверить, свободен ли запрашиваемый интервал
+			
 			// сделать массив мешающих эвентов
 			// сделать массив меньших по размерам, но подходящих
 			// сделать массив подходящих по размеру и свободных
@@ -471,7 +488,7 @@ class Eventeditor extends Component {
 * Function saveEvent Запускает валидацию и сохраняет событие в БД
 * @parpam {object} e Событие клика на кнопку "Сохранить"
 */
-	saveEvent(e) { // TODO запустить мутации
+	saveEvent(e) { // TODO проверять доступность комнаты непосредственно перед записью
 		console.log( 'save clicked' );
 		e.preventDefault();
 		
